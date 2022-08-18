@@ -1,0 +1,31 @@
+{
+  "receiver":{
+    "apiVersion":"notification.kubesphere.io/v2beta2",
+    "kind":"Receiver",
+    "metadata":{
+      "name":"resources-receiver",
+      "labels":{
+        "app":"notification-manager",
+        "type":"global"
+      }
+    },
+    "spec":{
+      "sms": {
+        "phoneNumbers": []
+      }
+    }
+  },
+  "alert": {
+    "status": "",
+    "alerts": [
+      {
+        "status": "zilliz",
+        "labels": {
+        },
+        "annotations": {
+          "message": "Cluster Resource Usage Details"
+        }
+      }
+    ]
+  }
+}

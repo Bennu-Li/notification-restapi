@@ -11,8 +11,10 @@ import (
 
 type MessageTemplate struct {
 	Id          int
+	Name        string
 	Message     string
 	CreatedTime string
+	UpdateTime  string
 }
 
 // init MySQL
@@ -45,13 +47,13 @@ func CreateTable(db *sql.DB, tabelFile string) error {
 }
 
 // Insert message template
-func InsertData(db *sql.DB, sqlStr string, args ...interface{}) error {
+func InsertData(db *sql.DB, sqlStr string, arg1 string, arg2 string) error {
 	stmt, err := db.Prepare(sqlStr)
 	if err != nil {
 		// log.Fatal(err)
 		return err
 	}
-	res, err := stmt.Exec(args)
+	res, err := stmt.Exec(arg1, arg2)
 	// res, err := db.Exec(sqlStr,args)
 	if err != nil {
 		// log.Fatal(err)
@@ -62,9 +64,9 @@ func InsertData(db *sql.DB, sqlStr string, args ...interface{}) error {
 }
 
 // Get message template by messagetype ID
-func SearchData(db *sql.DB, sqlStr string, args ...interface{}) (string, error) {
+func SearchData(db *sql.DB, sqlStr string, arg1 interface{}) (string, error) {
 	var message string
-	err := db.QueryRow(sqlStr, args).Scan(&message)
+	err := db.QueryRow(sqlStr, arg1).Scan(&message)
 	if err != nil {
 		fmt.Printf("scan failed, err:%v\n", err)
 		return "", err
@@ -73,24 +75,26 @@ func SearchData(db *sql.DB, sqlStr string, args ...interface{}) (string, error) 
 }
 
 // List all message template
-func GetAllTemplate(db *sql.DB, sqlStr string) error {
+func GetAllTemplate(db *sql.DB, sqlStr string) (map[int]MessageTemplate, error) {
 	rows, err := db.Query(sqlStr)
 	if err != nil {
-		fmt.Printf("query failed, err:%v\n", err)
-		return err
+		// fmt.Printf("query failed, err:%v\n", err)
+		return nil, err
 	}
 	defer rows.Close()
 
-	var message MessageTemplate
+	result := make(map[int]MessageTemplate)
 
 	for rows.Next() {
-		err := rows.Scan(&message.Id, &message.Message, &message.CreatedTime)
+		var message MessageTemplate
+		err := rows.Scan(&message.Id, &message.Name, &message.Message, &message.CreatedTime, &message.UpdateTime)
 		if err != nil {
 			fmt.Printf("scan failed, err:%v\n", err)
-			// return nil, err
+			return nil, err
 		}
-		fmt.Printf("id:%d\n message:%s\n createTime:%s\n\n", message.Id, message.Message, message.CreatedTime)
+		result[message.Id] = message
+		fmt.Printf("id: %d\nname: %s\nmessage: %s\ncreateTime: %s\nupdateTime: %s\n\n", message.Id, message.Name, message.Message, message.CreatedTime, message.UpdateTime)
 	}
-	return nil
+	return result, nil
 
 }
