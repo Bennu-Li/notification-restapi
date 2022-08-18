@@ -10,6 +10,7 @@ func main() {
 
 	group := router.Group("/api/v1")
 	group.POST("/send", controllers.SendMessage)
+	group.POST("/add", controllers.AddTemplate)
 
 	router.Run() // 0.0.0.0:8080
 }

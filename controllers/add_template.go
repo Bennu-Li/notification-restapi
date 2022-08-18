@@ -17,3 +17,7 @@ func AddTemplate(c *gin.Context) {
 	}
 
 }
+
+func (t *Template) SaveTemplate() {
+
+}
