@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"io/ioutil"
+	"os"
 	// "time"
 )
 
@@ -15,10 +16,8 @@ type MessageTemplate struct {
 }
 
 // init MySQL
-func InitMySQL() (*sql.DB, error) {
-	dsn := "user:password@tcp(127.0.0.1:3306)/dbname"
+func InitMySQL(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)
-	// defer db.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +28,9 @@ func InitMySQL() (*sql.DB, error) {
 	return db, nil
 }
 
-// tabelFile = "databases/db_messagetemplate_mysql.sql"
+// tabelFile = "database/db_messagetemplate_mysql.sql"
 func CreateTable(db *sql.DB, tabelFile string) error {
+	fmt.Println(os.Getwd())
 	sqlBytes, err := ioutil.ReadFile(tabelFile)
 	if err != nil {
 		return err
@@ -84,13 +84,12 @@ func GetAllTemplate(db *sql.DB, sqlStr string) error {
 	var message MessageTemplate
 
 	for rows.Next() {
-		var u user
 		err := rows.Scan(&message.Id, &message.Message, &message.CreatedTime)
 		if err != nil {
 			fmt.Printf("scan failed, err:%v\n", err)
 			// return nil, err
 		}
-		fmt.Printf("id:%d name:%s age:%d\n", message.Id, message.Message, message.CreatedTime)
+		fmt.Printf("id:%d\n message:%s\n createTime:%s\n\n", message.Id, message.Message, message.CreatedTime)
 	}
 	return nil
 

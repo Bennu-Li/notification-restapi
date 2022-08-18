@@ -12,6 +12,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	// "os"
+	"database/sql"
+	"github.com/Bennu-Li/notification-restapi/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,30 +35,34 @@ const (
 	ReceiverTypeSms    ReceiverType = "sms"
 )
 
-func SendMessage(c *gin.Context) {
+func SendMessage(c *gin.Context, db *sql.DB) error {
 	s := NotificationParams{}
 	if c.ShouldBind(&s) != nil {
-		c.String(400, "faild")
+		return fmt.Errorf("bind params error")
 	}
 
-	requestBody, err := (&s).generateRequestBody()
+	requestBody, err := (&s).generateRequestBody(db)
 	if err != nil {
-		c.String(400, "faild")
+		// c.String(400, "faild")
+		return err
 	}
 	bytesData, _ := json.Marshal(requestBody)
 	reader := bytes.NewReader(bytesData)
 
 	err = post(notificationServer, "application/json", reader)
 	if err != nil {
-		fmt.Println(err)
-		c.String(400, "faild")
+		// fmt.Println(err)
+		// c.String(400, "faild")
+		return err
 	}
-	c.String(200, "send message successfully!")
+	return nil
+	// c.String(200, "send message successfully!")
 }
 
-func (s *NotificationParams) mergeMessage() string {
+func (s *NotificationParams) mergeMessage(db *sql.DB) string {
 	// get message from db by s.MessageTypeId
-	messages := "You verification code is {}, it will"
+	// messages := "You verification code is {}, it will"
+	messages, _ := database.SearchData(db, "select message from message_template where id = ?", s.MessageTypeId)
 
 	strings.Replace(messages, "{}", s.MessageParams, 1)
 
@@ -67,7 +73,7 @@ func (s *NotificationParams) mergeMessage() string {
 	return messages
 }
 
-func (s *NotificationParams) generateRequestBody() (map[string]interface{}, error) {
+func (s *NotificationParams) generateRequestBody(db *sql.DB) (map[string]interface{}, error) {
 	var requestBody map[string]interface{}
 	box := packr.NewBox("alert")
 	byteValue := box.String("./alert/alert.json")
@@ -95,7 +101,7 @@ func (s *NotificationParams) generateRequestBody() (map[string]interface{}, erro
 
 	alerts := requestBody["alert"].(map[string]interface{})["alerts"].([]interface{})[0].(map[string]interface{})
 	// alerts["status"] = ""
-	alerts["annotations"].(map[string]interface{})["message"] = s.mergeMessage()
+	alerts["annotations"].(map[string]interface{})["message"] = s.mergeMessage(db)
 
 	return requestBody, nil
 }
