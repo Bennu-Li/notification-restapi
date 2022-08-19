@@ -62,7 +62,7 @@ func (u *UserInfo) GenToken() (string, error) {
 			Issuer:    "notification",
 		},
 	}
-	
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
 
 	secret, err := GetSecertKey()
@@ -74,7 +74,7 @@ func (u *UserInfo) GenToken() (string, error) {
 }
 
 func GetSecertKey() ([]byte, error) {
-	keyFile, err := os.Open("/Users/bennu/.ssh/id_rsa")
+	keyFile, err := os.Open(os.Getenv("KEYFILE"))
 	if err != nil {
 		return nil, err
 	}
