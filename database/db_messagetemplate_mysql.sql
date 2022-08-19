@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS `message_template` (
 	`id`          INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`name`        VARCHAR(20) NOT NULL,
+	`name`        VARCHAR(20) NOT NULL unique,
 	`message`     TEXT NOT NULL,
+	`user`        VARCHAR(20) NOT NULL,
 	`created_at`  DATETIME DEFAULT CURRENT_TIMESTAMP,
 	`updated_at`  DATETIME DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`)

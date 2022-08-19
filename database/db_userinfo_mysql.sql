@@ -1,3 +1,15 @@
-CREATE TABLE IF NOT EXISTS 'user_info' (
-	
-)
+CREATE TABLE IF NOT EXISTS `tb_users` (
+  `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_name` VARCHAR(30) DEFAULT '' COMMENT '账号',
+  `pass` VARCHAR(128) DEFAULT '' COMMENT '密码',
+  `real_name` VARCHAR(30) DEFAULT '' COMMENT '姓名',
+  `phone` CHAR(11) DEFAULT '' COMMENT '手机',
+  `status` TINYINT(4) DEFAULT 1 COMMENT '状态',
+  `remark` VARCHAR(255) DEFAULT '' COMMENT '备注',
+  `last_login_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `last_login_ip` CHAR(30) DEFAULT '' COMMENT '最近一次登录ip',
+  `login_times` INT(11) DEFAULT 0 COMMENT '累计登录次数',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

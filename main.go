@@ -6,13 +6,10 @@ import (
 	"github.com/Bennu-Li/notification-restapi/database"
 	"github.com/gin-gonic/gin"
 	"os"
-	// "database/sql"
 )
 
-var mysqlServer string = "root:H3Y3i44BfA@tcp(10.101.198.215:3306)/my_database"
-
 func main() {
-	db, err := database.InitMySQL(mysqlServer)
+	db, err := database.InitMySQL(os.Getenv("MYSQLSERVER"))
 	defer db.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -28,7 +25,9 @@ func main() {
 	router := gin.Default()
 	group := router.Group("/api/v1")
 
-	group.POST("/send", func(c *gin.Context) {
+	router.POST("/auth", controllers.AuthHandler)
+
+	group.POST("/send", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
 		err := controllers.SendMessage(c, db)
 		if err != nil {
 			fmt.Println(err)
@@ -38,17 +37,17 @@ func main() {
 		}
 	})
 
-	group.POST("/add", func(c *gin.Context) {
-		err := controllers.AddTemplate(c, db)
+	group.POST("/add", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		id, err := controllers.AddTemplate(c, db)
 		if err != nil {
 			fmt.Println(err)
 			c.String(400, "faild: %v", err)
 		} else {
-			c.String(200, "add message template successfully!")
+			c.String(200, "add message template successfully, template id: %v", id)
 		}
 	})
 
-	group.GET("/list", func(c *gin.Context) {
+	group.GET("/list", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
 		result, err := controllers.ListTemplate(c, db)
 		if err != nil {
 			fmt.Println(err)

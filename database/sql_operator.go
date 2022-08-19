@@ -47,20 +47,21 @@ func CreateTable(db *sql.DB, tabelFile string) error {
 }
 
 // Insert message template
-func InsertData(db *sql.DB, sqlStr string, arg1 string, arg2 string) error {
+func InsertData(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string) (int, error) {
 	stmt, err := db.Prepare(sqlStr)
 	if err != nil {
 		// log.Fatal(err)
-		return err
+		return 0, err
 	}
-	res, err := stmt.Exec(arg1, arg2)
+	res, err := stmt.Exec(arg1, arg2, arg3)
 	// res, err := db.Exec(sqlStr,args)
 	if err != nil {
 		// log.Fatal(err)
-		return err
+		return 0, err
 	}
-	fmt.Println(res)
-	return nil
+	id, err := res.LastInsertId()
+	// fmt.Println(res.LastInsertId())
+	return int(id), err
 }
 
 // Get message template by messagetype ID

@@ -13,18 +13,22 @@ type Template struct {
 	// MessageParams string `json:"messageparam" form:"messageparam"`
 }
 
-func AddTemplate(c *gin.Context, db *sql.DB) error {
+func AddTemplate(c *gin.Context, db *sql.DB) (int, error) {
 	t := &Template{}
 	if c.ShouldBind(t) != nil {
 		c.String(400, "faild")
 	}
-	err := t.SaveTemplate(db)
-	return err
+	id, err := t.SaveTemplate(c, db)
+	return id, err
 }
 
-func (t *Template) SaveTemplate(db *sql.DB) error {
-	fmt.Println("template: ", t)
-	sqlStr := "INSERT INTO message_template(name, message) values (?, ?);"
-	err := database.InsertData(db, sqlStr, t.Name, t.Message)
-	return err
+func (t *Template) SaveTemplate(c *gin.Context, db *sql.DB) (int, error) {
+	sqlStr := "INSERT INTO message_template(name, message, user) values (?, ?, ?);"
+	userName, ok := c.Get("username")
+	user := fmt.Sprintf("%v", userName)
+	if !ok {
+		return 0, fmt.Errorf("found no username")
+	}
+	id, err := database.InsertData(db, sqlStr, t.Name, t.Message, user)
+	return id, err
 }

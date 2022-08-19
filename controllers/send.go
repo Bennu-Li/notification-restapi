@@ -18,7 +18,7 @@ import (
 )
 
 // var notificationServer string = os.Getenv("NotificationServer")
-var notificationServer string = "http://10.12.6.30:19093/api/v2/notifications"
+// var notificationServer string = "http://10.12.6.30:19093/api/v2/notifications"
 
 type NotificationParams struct {
 	MessageTypeId int          `json:"id" form:"id"`
@@ -56,7 +56,7 @@ func SendMessage(c *gin.Context, db *sql.DB) error {
 	bytesData, _ := json.Marshal(requestBody)
 	reader := bytes.NewReader(bytesData)
 
-	responce, err := post(notificationServer, "application/json", reader)
+	responce, err := post(os.Getenv("NOTIFICARIONSERVER"), "application/json", reader)
 	if err != nil {
 		return err
 	}
