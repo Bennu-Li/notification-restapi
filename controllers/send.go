@@ -36,6 +36,21 @@ const (
 	ReceiverTypeSms    ReceiverType = "sms"
 )
 
+// SendNotification godoc
+// @Summary      Send notification to receiver
+// @Description  get string by ID
+// @Tags         Notification
+// @Accept       json
+// @Produce      json
+// @Param        MessageTypeId      query      int     false  "id"
+// @Param        MessageName        query      string  false  "name"
+// @Param        MessageParams      query      string  true  "params"
+// @Param        ReceiverType       query      string  true  "receivertype"
+// @Param        Receiver           query      string  true  "receiver"
+// @Success      200  {object}  map[string]any
+// @Router       /send  [post]
+// @securitydefinitions.apikey Authentication
+// @in header
 func SendMessage(c *gin.Context, db *sql.DB) error {
 	s := &NotificationParams{}
 	if c.ShouldBind(s) != nil {

@@ -24,6 +24,16 @@ type UserInfo struct {
 
 const TokenExpireDuration = time.Hour * 2
 
+// ApplyToken godoc
+// @Summary      Apply a authrization token
+// @Description  get string by ID
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        user   query     string     true  "user name"
+// @Param        app    query     string     true  "application name"
+// @Success      200    {object}  map[string]any
+// @Router       /auth  [post]
 func AuthHandler(c *gin.Context) {
 	u := &UserInfo{}
 	err := c.ShouldBind(u)

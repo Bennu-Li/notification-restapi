@@ -1,0 +1,86 @@
+basePath: /api/v1
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server celler server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /auth:
+    post:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: user
+        in: path
+        name: User
+        required: true
+        type: string
+      - description: app
+        in: path
+        name: AppName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Apply a authrization token
+      tags:
+      - auth
+  /send:
+    post:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: id
+        in: query
+        name: MessageTypeId
+        type: integer
+      - description: name
+        in: query
+        name: MessageName
+        type: string
+      - description: params
+        in: query
+        name: MessageParams
+        required: true
+        type: string
+      - description: receivertype
+        in: query
+        name: ReceiverType
+        required: true
+        type: string
+      - description: receiver
+        in: query
+        name: Receiver
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Send notification to receiver
+      tags:
+      - Notification
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
