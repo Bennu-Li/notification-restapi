@@ -1,2 +1,4 @@
 notification
 .env
+vendor
+notification-api.yaml

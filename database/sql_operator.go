@@ -34,13 +34,13 @@ func InitMySQL(dsn string) (*sql.DB, error) {
 
 // tabelFile = "database/db_messagetemplate_mysql.sql"
 func CreateTable(db *sql.DB, tabelFile string) error {
-	fmt.Println(os.Getwd())
+	// fmt.Println(os.Getwd())
 	sqlBytes, err := ioutil.ReadFile(tabelFile)
 	if err != nil {
 		return err
 	}
 	sqlTable := string(sqlBytes)
-	fmt.Println(sqlTable)
+	// fmt.Println(sqlTable)
 	_, err = db.Exec(sqlTable)
 	if err != nil {
 		return err

@@ -5,9 +5,13 @@ RUN make build
 
 FROM alpine
 WORKDIR /app
+RUN mkdir -p /app/database
+RUN mkdir -p /app/alert
+RUN mkdir -p /app/docs
 COPY --from=builder /app/notification /app
-COPY --from=builder  /app/alert /app
-COPY --from=builder  /app/docs /app
+COPY --from=builder  /app/alert/* /app/alert
+COPY --from=builder  /app/database/* /app/database
+COPY --from=builder  /app/docs/* /app/docs
 #RUN chmod +x /notification
 #RUN ./notification
 #CMD ["/notification"]

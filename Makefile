@@ -12,4 +12,5 @@ vet: ## Run go vet against code
 	go vet ./...
 
 build: fmt vet
-	CGO_ENABLED=0 go build -o notification main.go
+	CGO_ENABLED=0 go build -mod vendor -o notification main.go
+	#CGO_ENABLED=0 go build -o notification main.go
