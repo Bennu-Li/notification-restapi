@@ -46,6 +46,8 @@ func main() {
 
 	group.POST("/auth", controllers.AuthHandler)
 
+	group.GET("/refresh", controllers.JWTAuthMiddleware(), controllers.RefreshHandler)
+
 	group.POST("/send", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
 		controllers.SendMessage(c, db)
 	})

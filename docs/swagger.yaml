@@ -80,6 +80,24 @@ paths:
       summary: List message template
       tags:
       - Template
+  /refresh:
+    get:
+      consumes:
+      - application/json
+      description: Refresh Token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Refresh Token
+      tags:
+      - Auth
   /send:
     post:
       consumes:

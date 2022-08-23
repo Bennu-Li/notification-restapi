@@ -76,8 +76,9 @@ func AuthHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "Apply token successfully, check your email",
+		"code":  200,
+		"token": "Bearer " + tokenString,
+		"msg":   "The token has been sent to your email address, and the token is valid for one day",
 	})
 	return
 }
@@ -139,6 +140,63 @@ func (u *UserInfo) SendToken(token string) error {
 	}
 
 	return nil
+}
+
+// RefreshToken godoc
+// @Summary      Refresh Token
+// @Description  Refresh Token
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  map[string]any
+// @Router       /refresh  [get]
+// @Security Bearer
+func RefreshHandler(c *gin.Context) {
+	userName, okUser := c.Get("username")
+	user := fmt.Sprintf("%v", userName)
+
+	appName, okApp := c.Get("appname")
+	app := fmt.Sprintf("%v", appName)
+	if !okUser || !okApp {
+		fmt.Println("user: ", user, "app: ", app)
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  "The requested app name or user name are not recognized",
+		})
+		return
+	}
+
+	u := &UserInfo{
+		User:    user,
+		AppName: app,
+	}
+	tokenString, err := u.GenToken()
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  fmt.Sprintf("%v", err),
+		})
+		return
+	}
+
+	newToken := "Bearer " + tokenString
+
+	// err = u.SendToken(newToken)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	c.JSON(http.StatusOK, gin.H{
+	// 		"code": 400,
+	// 		"msg":  "send token faild",
+	// 	})
+	// 	return
+	// }
+
+	c.JSON(http.StatusOK, gin.H{
+		"code":      200,
+		"new token": newToken,
+	})
+	return
 }
 
 func JWTAuthMiddleware() func(c *gin.Context) {
