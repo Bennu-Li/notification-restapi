@@ -11,6 +11,8 @@
     },
     "spec":{
       "feishu":{
+      "template": "{{ template \"nm.default.text\" . }}",
+      "tmplType": "text",
         "chatbot":{
           "webhook":{
             "value": ""
@@ -23,11 +25,11 @@
     "status": "",
     "alerts": [
       {
-        "status": "zilliz",
+        "status": "",
         "labels": {
         },
         "annotations": {
-          "message": "Cluster Resource Usage Details"
+          "message": ""
         }
       }
     ]

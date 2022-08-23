@@ -11,6 +11,7 @@
     },
     "spec":{
       "email": {
+        "subjectTemplate": "{{ template \"nm.api.subject\" . }}",
         "to": []
       }
     }
@@ -19,11 +20,12 @@
     "status": "",
     "alerts": [
       {
-        "status": "zilliz",
+        "status": "",
         "labels": {
         },
         "annotations": {
-          "message": "Cluster Resource Usage Details"
+          "subject": "",
+          "message": ""
         }
       }
     ]

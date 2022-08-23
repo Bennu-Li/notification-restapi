@@ -10,24 +10,20 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth": {
+        "/add": {
             "post": {
-                "description": "get string by ID",
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Add a message template to db",
                 "consumes": [
                     "application/json"
                 ],
@@ -35,22 +31,22 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "Template"
                 ],
-                "summary": "Apply a authrization token",
+                "summary": "Regist message template",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "user",
-                        "name": "User",
-                        "in": "path",
+                        "description": "message template name",
+                        "name": "name",
+                        "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "app",
-                        "name": "AppName",
-                        "in": "path",
+                        "description": "message template",
+                        "name": "message",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -65,9 +61,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/send": {
+        "/auth": {
             "post": {
-                "description": "get string by ID",
+                "description": "Apply a authrization token",
                 "consumes": [
                     "application/json"
                 ],
@@ -75,40 +71,119 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Notification"
+                    "Auth"
                 ],
-                "summary": "Send notification to receiver",
+                "summary": "Apply a authrization token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Use the zilliz email",
+                        "name": "user",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "application name",
+                        "name": "app",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/list": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "List all message template",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Template"
+                ],
+                "summary": "List message template",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/send": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Send notification to a specify receiver",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Send"
+                ],
+                "summary": "Send notification",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "id",
-                        "name": "MessageTypeId",
+                        "description": "Message Template Id",
+                        "name": "id",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "name",
-                        "name": "MessageName",
+                        "description": "Message Template Name",
+                        "name": "name",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "params",
-                        "name": "MessageParams",
+                        "description": "Message Params",
+                        "name": "params",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "email subject",
+                        "name": "subject",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ReceiverType",
+                        "name": "receivertype",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "receivertype",
-                        "name": "ReceiverType",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "receiver",
-                        "name": "Receiver",
+                        "description": "Receiver",
+                        "name": "receiver",
                         "in": "query",
                         "required": true
                     }
@@ -126,8 +201,10 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
@@ -138,8 +215,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "Swagger Example API",
-	Description:      "This is a sample server celler server.",
+	Title:            "Notificcation API",
+	Description:      "This API is used to send notification.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

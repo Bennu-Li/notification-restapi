@@ -1,32 +1,54 @@
 basePath: /api/v1
 host: localhost:8080
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: This is a sample server celler server.
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: Swagger Example API
+  contact: {}
+  description: This API is used to send notification.
+  title: Notificcation API
   version: "1.0"
 paths:
+  /add:
+    post:
+      consumes:
+      - application/json
+      description: Add a message template to db
+      parameters:
+      - description: message template name
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: message template
+        in: query
+        name: message
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Regist message template
+      tags:
+      - Template
   /auth:
     post:
       consumes:
       - application/json
-      description: get string by ID
+      description: Apply a authrization token
       parameters:
-      - description: user
-        in: path
-        name: User
+      - description: Use the zilliz email
+        in: query
+        name: user
         required: true
         type: string
-      - description: app
-        in: path
-        name: AppName
+      - description: application name
+        in: query
+        name: app
         required: true
         type: string
       produces:
@@ -39,34 +61,55 @@ paths:
             type: object
       summary: Apply a authrization token
       tags:
-      - auth
+      - Auth
+  /list:
+    get:
+      consumes:
+      - application/json
+      description: List all message template
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: List message template
+      tags:
+      - Template
   /send:
     post:
       consumes:
       - application/json
-      description: get string by ID
+      description: Send notification to a specify receiver
       parameters:
-      - description: id
+      - description: Message Template Id
         in: query
-        name: MessageTypeId
+        name: id
         type: integer
-      - description: name
+      - description: Message Template Name
         in: query
-        name: MessageName
+        name: name
         type: string
-      - description: params
+      - description: Message Params
         in: query
-        name: MessageParams
+        name: params
+        type: string
+      - description: email subject
+        in: query
+        name: subject
+        type: string
+      - description: ReceiverType
+        in: query
+        name: receivertype
         required: true
         type: string
-      - description: receivertype
+      - description: Receiver
         in: query
-        name: ReceiverType
-        required: true
-        type: string
-      - description: receiver
-        in: query
-        name: Receiver
+        name: receiver
         required: true
         type: string
       produces:
@@ -77,10 +120,14 @@ paths:
           schema:
             additionalProperties: true
             type: object
-      summary: Send notification to receiver
+      security:
+      - Bearer: []
+      summary: Send notification
       tags:
-      - Notification
+      - Send
 securityDefinitions:
-  BasicAuth:
-    type: basic
+  Bearer:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

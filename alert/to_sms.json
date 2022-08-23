@@ -19,7 +19,7 @@
     "status": "",
     "alerts": [
       {
-        "status": "zilliz",
+        "status": "",
         "labels": {
         },
         "annotations": {

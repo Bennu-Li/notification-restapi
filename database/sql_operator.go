@@ -12,7 +12,9 @@ import (
 type MessageTemplate struct {
 	Id          int
 	Name        string
-	Message     string
+	Template    string
+	Registrant  string
+	Application string
 	CreatedTime string
 	UpdateTime  string
 }
@@ -47,20 +49,16 @@ func CreateTable(db *sql.DB, tabelFile string) error {
 }
 
 // Insert message template
-func InsertData(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string) (int, error) {
+func InsertData(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string, arg4 string) (int, error) {
 	stmt, err := db.Prepare(sqlStr)
 	if err != nil {
-		// log.Fatal(err)
 		return 0, err
 	}
-	res, err := stmt.Exec(arg1, arg2, arg3)
-	// res, err := db.Exec(sqlStr,args)
+	res, err := stmt.Exec(arg1, arg2, arg3, arg4)
 	if err != nil {
-		// log.Fatal(err)
 		return 0, err
 	}
 	id, err := res.LastInsertId()
-	// fmt.Println(res.LastInsertId())
 	return int(id), err
 }
 
@@ -76,26 +74,49 @@ func SearchData(db *sql.DB, sqlStr string, arg1 interface{}) (string, error) {
 }
 
 // List all message template
-func GetAllTemplate(db *sql.DB, sqlStr string) (map[int]MessageTemplate, error) {
+func GetAllTemplate(db *sql.DB, sqlStr string) ([]MessageTemplate, error) {
 	rows, err := db.Query(sqlStr)
 	if err != nil {
-		// fmt.Printf("query failed, err:%v\n", err)
 		return nil, err
 	}
 	defer rows.Close()
 
-	result := make(map[int]MessageTemplate)
+	var result []MessageTemplate
 
 	for rows.Next() {
 		var message MessageTemplate
-		err := rows.Scan(&message.Id, &message.Name, &message.Message, &message.CreatedTime, &message.UpdateTime)
+		err := rows.Scan(&message.Id, &message.Name, &message.Template, &message.Registrant, &message.Application, &message.CreatedTime, &message.UpdateTime)
 		if err != nil {
 			fmt.Printf("scan failed, err:%v\n", err)
 			return nil, err
 		}
-		result[message.Id] = message
-		fmt.Printf("id: %d\nname: %s\nmessage: %s\ncreateTime: %s\nupdateTime: %s\n\n", message.Id, message.Name, message.Message, message.CreatedTime, message.UpdateTime)
+		result = append(result, message)
+		// fmt.Printf("id: %d\nname: %s\nmessage: %s\ncreateTime: %s\nupdateTime: %s\n\n", message.Id, message.Name, message.Template, message.CreatedTime, message.UpdateTime)
 	}
 	return result, nil
 
+}
+
+//Get template Name by template id
+func GetTemplateNameByID(db *sql.DB, sqlStr string, arg1 int) (string, error) {
+	var name string
+	err := db.QueryRow(sqlStr, arg1).Scan(&name)
+	if err != nil {
+		fmt.Printf("scan failed, err:%v\n", err)
+		return "", err
+	}
+	return name, nil
+}
+
+//Record user behavier
+func UserBehavier(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string) error {
+	stmt, err := db.Prepare(sqlStr)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(arg1, arg2, arg3, arg4, arg5, arg6)
+	if err != nil {
+		return err
+	}
+	return err
 }

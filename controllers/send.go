@@ -21,11 +21,12 @@ import (
 // var notificationServer string = "http://10.12.6.30:19093/api/v2/notifications"
 
 type NotificationParams struct {
-	MessageTypeId int          `json:"id" form:"id"`
-	MessageName   string       `json:"name" form:"name"`
+	TemplateId    int          `json:"id" form:"id"`
+	TemplateName  string       `json:"name" form:"name"`
 	MessageParams string       `json:"params" form:"params"`
 	ReceiverType  ReceiverType `json:"receivertype" form:"receivertype"`
 	Receiver      string       `json:"receiver" form:"receiver"`
+	Subject       string       `json:"subject" form:"subject"`
 }
 
 type ReceiverType string
@@ -37,50 +38,90 @@ const (
 )
 
 // SendNotification godoc
-// @Summary      Send notification to receiver
-// @Description  get string by ID
-// @Tags         Notification
+// @Summary      Send notification
+// @Description  Send notification to a specify receiver
+// @Tags         Send
 // @Accept       json
 // @Produce      json
-// @Param        MessageTypeId      query      int     false  "id"
-// @Param        MessageName        query      string  false  "name"
-// @Param        MessageParams      query      string  true  "params"
-// @Param        ReceiverType       query      string  true  "receivertype"
-// @Param        Receiver           query      string  true  "receiver"
-// @Success      200  {object}  map[string]any
+// @Param        id                 query      int     false   "Message Template Id"
+// @Param        name               query      string  false   "Message Template Name"
+// @Param        params             query      string  false   "Message Params"
+// @Param        subject            query      string  false   "email subject"
+// @Param        receivertype       query      string  true    "ReceiverType"
+// @Param        receiver           query      string  true    "Receiver"
+// @Success      200                {object}   map[string]any
 // @Router       /send  [post]
-// @securitydefinitions.apikey Authentication
-// @in header
-func SendMessage(c *gin.Context, db *sql.DB) error {
+// @Security Bearer
+func SendMessage(c *gin.Context, db *sql.DB) {
 	s := &NotificationParams{}
 	if c.ShouldBind(s) != nil {
-		return fmt.Errorf("bind params error")
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  "bind params error",
+		})
+		return
 	}
 
-	fmt.Println(s)
+	if s.TemplateId == 0 && s.TemplateName == "" {
+		// return fmt.Errorf("Requires one of template id or name")
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  "Requires one of template id or name",
+		})
+		return
+	}
 
-	if s.MessageTypeId == 0 && s.MessageName == "" {
-		return fmt.Errorf("None of message type id and name")
+	if (s.ReceiverType == "") || (s.Receiver == "") {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  "receivertype and receiver cannot be empty",
+		})
+		return
 	}
 
 	requestBody, err := s.generateRequestBody(db)
 	if err != nil {
-		return err
+		fmt.Println(err)
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  fmt.Sprintf("%v", err),
+		})
+		return
 	}
 	fmt.Println(requestBody)
 	bytesData, _ := json.Marshal(requestBody)
 	reader := bytes.NewReader(bytesData)
-
 	responce, err := post(os.Getenv("NOTIFICARIONSERVER"), "application/json", reader)
+
+	status := fmt.Sprintf("%v", responce["Status"])
+	errRecord := s.RecordBehavior(c, db, status)
+	if errRecord != nil {
+		fmt.Println("record error: ", errRecord)
+	}
 	if err != nil {
-		return err
+		fmt.Println(err)
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  fmt.Sprintf("%v", err),
+		})
+
+		return
 	}
 	fmt.Println("RSP: {Status:", responce["Status"], ", Message:", responce["Message"], "}")
-	status := fmt.Sprintf("%v", responce["Status"])
 	if status != "200" {
-		return fmt.Errorf(fmt.Sprintf("%v", responce["Message"]))
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  fmt.Sprintf("%v", responce["Message"]),
+		})
+
+		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"msg":  "send successfully",
+		})
 	}
-	return nil
+	return
 }
 
 func (s *NotificationParams) generateRequestBody(db *sql.DB) (map[string]interface{}, error) {
@@ -108,10 +149,19 @@ func (s *NotificationParams) generateRequestBody(db *sql.DB) (map[string]interfa
 		}
 		sms := requestBody["receiver"].(map[string]interface{})["spec"].(map[string]interface{})["sms"].(map[string]interface{})
 		sms["phoneNumbers"] = []string{strings.TrimSpace(s.Receiver)}
+	default:
+		return nil, fmt.Errorf("Error receiver type, should be one of them: feishu, email, sms")
 	}
 	alerts := requestBody["alert"].(map[string]interface{})["alerts"].([]interface{})[0].(map[string]interface{})
 	alerts["annotations"].(map[string]interface{})["message"], err = s.mergeMessage(db)
-	// alerts["status"] = ""
+
+	if s.ReceiverType == "email" {
+		if s.Subject == "" {
+			return nil, fmt.Errorf("Need subject for email receiver")
+		}
+		alerts["annotations"].(map[string]interface{})["subject"] = s.Subject
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -140,27 +190,30 @@ func readJson(filename string) (map[string]interface{}, error) {
 }
 
 func (s *NotificationParams) mergeMessage(db *sql.DB) (string, error) {
-	// get message from db by s.MessageTypeId
+	// get message from db by s.TemplateId
 	var messages string
 	var err error
-	if s.MessageTypeId != 0 {
-		messages, err = database.SearchData(db, "select message from message_template where id = ?", s.MessageTypeId)
+	if s.TemplateId != 0 {
+		messages, err = database.SearchData(db, "select message from message_template where id = ?", s.TemplateId)
 	} else {
-		messages, err = database.SearchData(db, "select message from message_template where name = ?", s.MessageName)
+		messages, err = database.SearchData(db, "select message from message_template where name = ?", s.TemplateName)
 	}
 	if err != nil {
 		return "", err
 	}
 
 	// messages = strings.Replace(messages, "{opt}", s.MessageParams, 1)
+	// fmt.Println("sourceParams: ", s.MessageParams)
 
 	params := strings.Split(s.MessageParams, "|")
+
+	// fmt.Println("params: ", params, "length: ", len(params))
 	count := strings.Count(messages, "{opt}")
-	if count != len(params) {
-		return "", fmt.Errorf("Error the number of parameters does not match the required by the template message")
+	if count != 0 && count != len(params) {
+		return "", fmt.Errorf("The number of parameters does not match the required by the template: have %d, want %d", len(params), count)
 	}
-	for i, param := range params {
-		messages = strings.Replace(messages, "{opt}", param, i+1)
+	for _, param := range params {
+		messages = strings.Replace(messages, "{opt}", param, 1)
 	}
 
 	return messages, nil
@@ -184,4 +237,32 @@ func post(url string, contentType string, jsonFile io.Reader) (map[string]interf
 	// fmt.Println(responce["Status"], responce["Message"])
 	// fmt.Println("RSP:", string(body))
 	return responce, nil
+}
+
+func (s *NotificationParams) RecordBehavior(c *gin.Context, db *sql.DB, status string) error {
+	sqlStr := "INSERT INTO user_behavior(user, application, template, params, message, status) values (?, ?, ?, ?, ?, ?);"
+	userName, ok := c.Get("username")
+	user := fmt.Sprintf("%v", userName)
+	if !ok {
+		return fmt.Errorf("The requested user name is not recognized")
+	}
+	appName, ok := c.Get("appname")
+	app := fmt.Sprintf("%v", appName)
+	if !ok {
+		return fmt.Errorf("The requested app name is not recognized")
+	}
+	message, err := s.mergeMessage(db)
+	if err != nil {
+		return err
+	}
+	if s.TemplateName == "" {
+		name, err := database.GetTemplateNameByID(db, "select name from message_template where id = ?", s.TemplateId)
+		if err != nil {
+			return err
+		}
+		s.TemplateName = name
+	}
+
+	err = database.UserBehavier(db, sqlStr, user, app, s.TemplateName, s.MessageParams, message, status)
+	return err
 }
