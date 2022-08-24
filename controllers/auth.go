@@ -48,6 +48,7 @@ func AuthHandler(c *gin.Context) {
 	}
 
 	if len(u.User) < 10 || u.User[len(u.User)-10:len(u.User)] != "zilliz.com" {
+		fmt.Println("username:", u.User, u.User[len(u.User)-10:len(u.User)])
 		c.JSON(http.StatusOK, gin.H{
 			"code": 400,
 			"msg":  "User should be your email address with '@zilliz.com'",
@@ -70,7 +71,7 @@ func AuthHandler(c *gin.Context) {
 		fmt.Println(err)
 		c.JSON(http.StatusOK, gin.H{
 			"code": 400,
-			"msg":  "send token faild, check you username!",
+			"msg":  fmt.Sprintf("%v", err),
 		})
 		return
 	}
@@ -130,13 +131,15 @@ func (u *UserInfo) SendToken(token string) error {
 	bytesData, _ := json.Marshal(requestBody)
 	reader := bytes.NewReader(bytesData)
 
-	responce, err := post(os.Getenv("NOTIFICARIONSERVER"), "application/json", reader)
+	responce, err := post(os.Getenv("NOTIFICATIONSERVER"), "application/json", reader)
+
 	status := fmt.Sprintf("%v", responce["Status"])
 	if err != nil {
 		return err
 	}
 	if status != "200" {
-		return fmt.Errorf("send token faild, check you username!")
+		// fmt.Println(responce)
+		return fmt.Errorf(fmt.Sprintf("%v", responce))
 	}
 
 	return nil

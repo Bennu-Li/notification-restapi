@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/Bennu-Li/notification-restapi/controllers"
-	"github.com/Bennu-Li/notification-restapi/database"
-	_ "github.com/Bennu-Li/notification-restapi/docs"
+	"github.com/Bennu-Li/notification-restapi/docs"
+	"github.com/Bennu-Li/notification-restapi/models"
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
@@ -21,22 +21,28 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	db, err := database.InitMySQL(os.Getenv("MYSQLSERVER"))
+	db, err := models.InitMySQL(os.Getenv("MYSQLSERVER"))
 	defer db.Close()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	err = database.CreateTable(db, "./database/db_messagetemplate_mysql.sql")
+	err = models.CreateTable(db, "./database/db_messagetemplate_mysql.sql")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	err = database.CreateTable(db, "./database/db_userbehavior_mysql.sql")
+	err = models.CreateTable(db, "./database/db_userbehavior_mysql.sql")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+
+	// docHost := flag.String("docHost", "localhost:8080", "doc host")
+	docHost := os.Getenv("DOCHOST")
+	if docHost != "" {
+		docs.SwaggerInfo.Host = docHost + ":8080"
 	}
 
 	router := gin.Default()

@@ -9,7 +9,7 @@ import (
 	// "reflect"
 	// "github.com/gobuffalo/packr"
 	"database/sql"
-	"github.com/Bennu-Li/notification-restapi/database"
+	"github.com/Bennu-Li/notification-restapi/models"
 	"github.com/gin-gonic/gin"
 	"io"
 	"io/ioutil"
@@ -88,10 +88,10 @@ func SendMessage(c *gin.Context, db *sql.DB) {
 		})
 		return
 	}
-	fmt.Println(requestBody)
+	// fmt.Println(requestBody)
 	bytesData, _ := json.Marshal(requestBody)
 	reader := bytes.NewReader(bytesData)
-	responce, err := post(os.Getenv("NOTIFICARIONSERVER"), "application/json", reader)
+	responce, err := post(os.Getenv("NOTIFICATIONSERVER"), "application/json", reader)
 
 	status := fmt.Sprintf("%v", responce["Status"])
 	errRecord := s.RecordBehavior(c, db, status)
@@ -194,9 +194,9 @@ func (s *NotificationParams) mergeMessage(db *sql.DB) (string, error) {
 	var messages string
 	var err error
 	if s.TemplateId != 0 {
-		messages, err = database.SearchData(db, "select message from message_template where id = ?", s.TemplateId)
+		messages, err = models.SearchData(db, "select message from message_template where id = ?", s.TemplateId)
 	} else {
-		messages, err = database.SearchData(db, "select message from message_template where name = ?", s.TemplateName)
+		messages, err = models.SearchData(db, "select message from message_template where name = ?", s.TemplateName)
 	}
 	if err != nil {
 		return "", err
@@ -235,7 +235,7 @@ func post(url string, contentType string, jsonFile io.Reader) (map[string]interf
 	var responce map[string]interface{}
 	json.Unmarshal([]byte(body), &responce)
 	// fmt.Println(responce["Status"], responce["Message"])
-	// fmt.Println("RSP:", string(body))
+	fmt.Println("RSP:", string(body))
 	return responce, nil
 }
 
@@ -256,13 +256,13 @@ func (s *NotificationParams) RecordBehavior(c *gin.Context, db *sql.DB, status s
 		return err
 	}
 	if s.TemplateName == "" {
-		name, err := database.GetTemplateNameByID(db, "select name from message_template where id = ?", s.TemplateId)
+		name, err := models.GetTemplateNameByID(db, "select name from message_template where id = ?", s.TemplateId)
 		if err != nil {
 			return err
 		}
 		s.TemplateName = name
 	}
 
-	err = database.UserBehavier(db, sqlStr, user, app, s.TemplateName, s.MessageParams, message, status)
+	err = models.UserBehavior(db, sqlStr, user, app, s.TemplateName, s.MessageParams, message, status)
 	return err
 }

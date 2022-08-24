@@ -3,7 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/Bennu-Li/notification-restapi/database"
+	"github.com/Bennu-Li/notification-restapi/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -20,7 +20,7 @@ import (
 func ListTemplate(c *gin.Context, db *sql.DB) {
 	sqlStr := "select * from message_template"
 
-	result, err := database.GetAllTemplate(db, sqlStr)
+	result, err := models.GetAllTemplate(db, sqlStr)
 
 	if err != nil {
 		fmt.Println(err)

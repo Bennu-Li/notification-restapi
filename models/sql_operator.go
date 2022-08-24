@@ -1,11 +1,11 @@
-package database
+package models
 
 import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"io/ioutil"
-	"os"
+	// "os"
 	// "time"
 )
 
@@ -32,9 +32,7 @@ func InitMySQL(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
-// tabelFile = "database/db_messagetemplate_mysql.sql"
 func CreateTable(db *sql.DB, tabelFile string) error {
-	// fmt.Println(os.Getwd())
 	sqlBytes, err := ioutil.ReadFile(tabelFile)
 	if err != nil {
 		return err
@@ -108,8 +106,8 @@ func GetTemplateNameByID(db *sql.DB, sqlStr string, arg1 int) (string, error) {
 	return name, nil
 }
 
-//Record user behavier
-func UserBehavier(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string) error {
+//Record user behavior
+func UserBehavior(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string) error {
 	stmt, err := db.Prepare(sqlStr)
 	if err != nil {
 		return err

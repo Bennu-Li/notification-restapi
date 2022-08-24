@@ -3,7 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/Bennu-Li/notification-restapi/database"
+	"github.com/Bennu-Li/notification-restapi/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -89,6 +89,6 @@ func (t *Template) SaveTemplate(c *gin.Context, db *sql.DB) (int, error) {
 	if !ok {
 		return 0, fmt.Errorf("The requested app name is not recognized")
 	}
-	id, err := database.InsertData(db, sqlStr, t.Name, t.Message, user, app)
+	id, err := models.InsertData(db, sqlStr, t.Name, t.Message, user, app)
 	return id, err
 }
