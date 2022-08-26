@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
-	// "net/http"
 	"os"
 )
 
@@ -39,7 +38,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// docHost := flag.String("docHost", "localhost:8080", "doc host")
 	docHost := os.Getenv("DOCHOST")
 	if docHost != "" {
 		docs.SwaggerInfo.Host = docHost + ":8080"
