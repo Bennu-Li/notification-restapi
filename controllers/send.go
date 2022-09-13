@@ -17,9 +17,6 @@ import (
 	"os"
 )
 
-// var notificationServer string = os.Getenv("NotificationServer")
-// var notificationServer string = "http://10.12.6.30:19093/api/v2/notifications"
-
 type NotificationParams struct {
 	TemplateId    int          `json:"id" form:"id"`
 	TemplateName  string       `json:"name" form:"name"`
@@ -37,21 +34,6 @@ const (
 	ReceiverTypeSms    ReceiverType = "sms"
 )
 
-// SendNotification godoc
-// @Summary      Send notification
-// @Description  Send notification to a specify receiver
-// @Tags         Send
-// @Accept       json
-// @Produce      json
-// @Param        id                 query      int     false   "Message Template Id"
-// @Param        name               query      string  false   "Message Template Name"
-// @Param        params             query      string  false   "Message Params"
-// @Param        subject            query      string  false   "email subject"
-// @Param        receivertype       query      string  true    "ReceiverType"
-// @Param        receiver           query      string  true    "Receiver"
-// @Success      200                {object}   map[string]any
-// @Router       /send  [post]
-// @Security Bearer
 func SendMessage(c *gin.Context, db *sql.DB) {
 	s := &NotificationParams{}
 	if c.ShouldBind(s) != nil {
@@ -263,6 +245,6 @@ func (s *NotificationParams) RecordBehavior(c *gin.Context, db *sql.DB, status s
 		s.TemplateName = name
 	}
 
-	err = models.UserBehavior(db, sqlStr, user, app, s.TemplateName, s.MessageParams, message, status)
+	err = models.UserBehavior(db, sqlStr, user, app, message, s.Receiver, status)
 	return err
 }

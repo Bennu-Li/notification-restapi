@@ -1,10 +1,9 @@
-CREATE TABLE IF NOT EXISTS `user_behavior` (
+CREATE TABLE IF NOT EXISTS `sendMessages` (
   `id`          INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `user`        VARCHAR(30) ,
   `application` VARCHAR(30) ,
-  `template`    TEXT,
-  `params`      TEXT,
   `message`     TEXT,
+  `receiver`    TEXT,
   `status`      INT(10),
   `send_time`   DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

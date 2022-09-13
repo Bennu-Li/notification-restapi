@@ -37,6 +37,11 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	err = models.CreateTable(db, "./database/db_userinfo_mysql.sql")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	docHost := os.Getenv("DOCHOST")
 	if docHost != "" {
@@ -44,21 +49,39 @@ func main() {
 	}
 
 	router := gin.Default()
-	group := router.Group("/api/v1")
+
+	router.POST("/api/addUser", func(c *gin.Context) {
+		controllers.AddUser(c, db)
+
+	})
+	router.POST("/api/addTemp", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.AddTemplate(c, db)
+
+	})
+	router.GET("/api/list", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.ListAllTemplate(c, db)
+	})
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	group.POST("/auth", controllers.AuthHandler)
+	group := router.Group("/api/v1")
+
+	group.POST("/auth", func(c *gin.Context) {
+		controllers.AuthHandler(c, db)
+	})
 
 	group.GET("/refresh", controllers.JWTAuthMiddleware(), controllers.RefreshHandler)
 
-	group.POST("/send", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
-		controllers.SendMessage(c, db)
+	group.POST("/sms", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.SMS(c, db)
 	})
 
-	group.POST("/add", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
-		controllers.AddTemplate(c, db)
+	group.POST("/email", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.Email(c, db)
+	})
 
+	group.POST("/feishu", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.Feishu(c, db)
 	})
 
 	group.GET("/list", controllers.JWTAuthMiddleware(), func(c *gin.Context) {

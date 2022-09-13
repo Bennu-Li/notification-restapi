@@ -60,6 +60,20 @@ func InsertData(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string
 	return int(id), err
 }
 
+// Insert User info
+func InsertUser(db *sql.DB, sqlStr string, arg1 string, arg2 string) (int, error) {
+	stmt, err := db.Prepare(sqlStr)
+	if err != nil {
+		return 0, err
+	}
+	res, err := stmt.Exec(arg1, arg2)
+	if err != nil {
+		return 0, err
+	}
+	id, err := res.LastInsertId()
+	return int(id), err
+}
+
 // Get message template by messagetype ID
 func SearchData(db *sql.DB, sqlStr string, arg1 interface{}) (string, error) {
 	var message string
@@ -95,6 +109,29 @@ func GetAllTemplate(db *sql.DB, sqlStr string) ([]MessageTemplate, error) {
 
 }
 
+func GetUserTemplate(db *sql.DB, sqlStr string, arg1 string) ([]MessageTemplate, error) {
+	rows, err := db.Query(sqlStr, arg1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []MessageTemplate
+
+	for rows.Next() {
+		var message MessageTemplate
+		err := rows.Scan(&message.Id, &message.Name, &message.Template, &message.Registrant, &message.Application, &message.CreatedTime, &message.UpdateTime)
+		if err != nil {
+			fmt.Printf("scan failed, err:%v\n", err)
+			return nil, err
+		}
+		result = append(result, message)
+		// fmt.Printf("id: %d\nname: %s\nmessage: %s\ncreateTime: %s\nupdateTime: %s\n\n", message.Id, message.Name, message.Template, message.CreatedTime, message.UpdateTime)
+	}
+	return result, nil
+
+}
+
 //Get template Name by template id
 func GetTemplateNameByID(db *sql.DB, sqlStr string, arg1 int) (string, error) {
 	var name string
@@ -107,14 +144,30 @@ func GetTemplateNameByID(db *sql.DB, sqlStr string, arg1 int) (string, error) {
 }
 
 //Record user behavior
-func UserBehavior(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string) error {
+func UserBehavior(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string, arg4 string, arg5 string) error {
 	stmt, err := db.Prepare(sqlStr)
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(arg1, arg2, arg3, arg4, arg5, arg6)
+	_, err = stmt.Exec(arg1, arg2, arg3, arg4, arg5)
 	if err != nil {
 		return err
 	}
 	return err
+}
+
+//Check user auth
+func CheckUserAuth(db *sql.DB, sqlStr string, arg1 string) (bool, error) {
+	var count int
+	err := db.QueryRow(sqlStr, arg1).Scan(&count)
+	if err != nil {
+		fmt.Printf("scan failed, err:%v\n", err)
+		return false, err
+	}
+	fmt.Println("get use: ", count)
+	if count == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
 }

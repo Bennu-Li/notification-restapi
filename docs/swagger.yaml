@@ -6,35 +6,6 @@ info:
   title: Notificcation API
   version: "1.0"
 paths:
-  /add:
-    post:
-      consumes:
-      - application/json
-      description: Add a message template to db
-      parameters:
-      - description: message template name
-        in: query
-        name: name
-        required: true
-        type: string
-      - description: message template
-        in: query
-        name: message
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - Bearer: []
-      summary: Regist message template
-      tags:
-      - Template
   /auth:
     post:
       consumes:
@@ -62,6 +33,73 @@ paths:
       summary: Apply a authrization token
       tags:
       - Auth
+  /email:
+    post:
+      consumes:
+      - application/json
+      description: Send a message to a specify email address
+      parameters:
+      - description: email address
+        in: query
+        name: receiver
+        required: true
+        type: string
+      - description: email subject
+        in: query
+        name: subject
+        required: true
+        type: string
+      - description: email message
+        in: query
+        name: message
+        required: true
+        type: string
+      - description: email content format, text or html, default text
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Send message by email
+      tags:
+      - Send
+  /feishu:
+    post:
+      consumes:
+      - application/json
+      description: Send a message to feishu
+      parameters:
+      - description: email address
+        in: query
+        name: receiver
+        required: true
+        type: string
+      - description: email message
+        in: query
+        name: message
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Send message by feishu
+      tags:
+      - Send
   /list:
     get:
       consumes:
@@ -98,11 +136,11 @@ paths:
       summary: Refresh Token
       tags:
       - Auth
-  /send:
+  /sms:
     post:
       consumes:
       - application/json
-      description: Send notification to a specify receiver
+      description: Send a message to a phonenumber
       parameters:
       - description: Message Template Id
         in: query
@@ -116,16 +154,7 @@ paths:
         in: query
         name: params
         type: string
-      - description: email subject
-        in: query
-        name: subject
-        type: string
-      - description: ReceiverType
-        in: query
-        name: receivertype
-        required: true
-        type: string
-      - description: Receiver
+      - description: Receiver phone number, area code required
         in: query
         name: receiver
         required: true
@@ -140,7 +169,7 @@ paths:
             type: object
       security:
       - Bearer: []
-      summary: Send notification
+      summary: Send message by sms
       tags:
       - Send
 securityDefinitions:

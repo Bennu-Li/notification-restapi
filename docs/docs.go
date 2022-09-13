@@ -16,51 +16,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/add": {
-            "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Add a message template to db",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Template"
-                ],
-                "summary": "Regist message template",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "message template name",
-                        "name": "name",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "message template",
-                        "name": "message",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/auth": {
             "post": {
                 "description": "Apply a authrization token",
@@ -86,6 +41,109 @@ const docTemplate = `{
                         "type": "string",
                         "description": "application name",
                         "name": "app",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/email": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Send a message to a specify email address",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Send"
+                ],
+                "summary": "Send message by email",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "email address",
+                        "name": "receiver",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "email subject",
+                        "name": "subject",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "email message",
+                        "name": "message",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "email content format, text or html, default text",
+                        "name": "format",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/feishu": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Send a message to feishu",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Send"
+                ],
+                "summary": "Send message by feishu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "email address",
+                        "name": "receiver",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "email message",
+                        "name": "message",
                         "in": "query",
                         "required": true
                     }
@@ -159,14 +217,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/send": {
+        "/sms": {
             "post": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
-                "description": "Send notification to a specify receiver",
+                "description": "Send a message to a phonenumber",
                 "consumes": [
                     "application/json"
                 ],
@@ -176,7 +234,7 @@ const docTemplate = `{
                 "tags": [
                     "Send"
                 ],
-                "summary": "Send notification",
+                "summary": "Send message by sms",
                 "parameters": [
                     {
                         "type": "integer",
@@ -198,20 +256,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "email subject",
-                        "name": "subject",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "ReceiverType",
-                        "name": "receivertype",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Receiver",
+                        "description": "Receiver phone number, area code required",
                         "name": "receiver",
                         "in": "query",
                         "required": true

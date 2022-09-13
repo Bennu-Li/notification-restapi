@@ -14,17 +14,6 @@ type Template struct {
 	// Application string  `json:"application" form:"application"`
 }
 
-// AddTemplate godoc
-// @Summary      Regist message template
-// @Description  Add a message template to db
-// @Tags         Template
-// @Accept       json
-// @Produce      json
-// @Param        name           query      string  true   "message template name"
-// @Param        message        query      string  true   "message template"
-// @Success      200  {object}  map[string]any
-// @Router       /add  [post]
-// @Security Bearer
 func AddTemplate(c *gin.Context, db *sql.DB) {
 	t := &Template{}
 	if c.Bind(t) != nil {
@@ -50,14 +39,6 @@ func AddTemplate(c *gin.Context, db *sql.DB) {
 		})
 		return
 	}
-
-	// if t.Application == "" {
-	// 	c.JSON(http.StatusOK, gin.H{
-	// 		"code": 400,
-	// 		"msg":  "Application cannot be empty",
-	// 	})
-	// 	return
-	// }
 
 	id, err := t.SaveTemplate(c, db)
 	if err != nil {
@@ -90,5 +71,52 @@ func (t *Template) SaveTemplate(c *gin.Context, db *sql.DB) (int, error) {
 		return 0, fmt.Errorf("The requested app name is not recognized")
 	}
 	id, err := models.InsertData(db, sqlStr, t.Name, t.Message, user, app)
+	return id, err
+}
+
+type User struct {
+	Name string `json:"name" form:"name"`
+	App  string `json:"app" form:"app"`
+}
+
+func AddUser(c *gin.Context, db *sql.DB) {
+	u := &User{}
+	if c.Bind(u) != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  "bind params error",
+		})
+		return
+	}
+
+	if u.Name == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  "User name cannot be empty",
+		})
+		return
+	}
+
+	id, err := u.SaveUser(c, db)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  fmt.Sprintf("%v", err),
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 200,
+			"ID":   id,
+			"msg":  "success",
+		})
+	}
+
+	return
+}
+
+func (u *User) SaveUser(c *gin.Context, db *sql.DB) (int, error) {
+	sqlStr := "INSERT INTO user_info(user, application) values (?, ?);"
+	id, err := models.InsertUser(db, sqlStr, u.Name, u.App)
 	return id, err
 }

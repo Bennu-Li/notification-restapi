@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/Bennu-Li/notification-restapi/models"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -36,7 +38,7 @@ const TokenExpireDuration = time.Hour * 24
 // @Param        app    query     string     true  "application name"
 // @Success      200    {object}  map[string]any
 // @Router       /auth  [post]
-func AuthHandler(c *gin.Context) {
+func AuthHandler(c *gin.Context, db *sql.DB) {
 	u := &UserInfo{}
 	err := c.ShouldBind(u)
 	if err != nil {
@@ -47,11 +49,18 @@ func AuthHandler(c *gin.Context) {
 		return
 	}
 
-	if len(u.User) < 10 || u.User[len(u.User)-10:len(u.User)] != "zilliz.com" {
-		fmt.Println("username:", u.User, u.User[len(u.User)-10:len(u.User)])
+	ok, err := models.CheckUserAuth(db, "select count(*) from user_info where user = ?", u.User)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 402,
+			"msg":  fmt.Sprintf("%v", err),
+		})
+		return
+	}
+	if !ok {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 400,
-			"msg":  "User should be your email address with '@zilliz.com'",
+			"msg":  "You do not have permission to request a token",
 		})
 		return
 	}
@@ -82,6 +91,10 @@ func AuthHandler(c *gin.Context) {
 		"msg":   "The token has been sent to your email address, and the token is valid for one day",
 	})
 	return
+}
+
+func (u *UserInfo) CheckUser() {
+	//
 }
 
 func (u *UserInfo) GenToken() (string, error) {
