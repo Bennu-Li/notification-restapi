@@ -12,7 +12,7 @@ paths:
       - application/json
       description: Apply a authrization token
       parameters:
-      - description: Use the zilliz email
+      - description: email address
         in: query
         name: user
         required: true
@@ -77,12 +77,12 @@ paths:
       - application/json
       description: Send a message to feishu
       parameters:
-      - description: email address
+      - description: feishu chatbot webhook
         in: query
         name: receiver
         required: true
         type: string
-      - description: email message
+      - description: message content
         in: query
         name: message
         required: true
@@ -140,7 +140,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Send a message to a phonenumber
+      description: Send a message to a phone number
       parameters:
       - description: Message Template Id
         in: query
@@ -150,7 +150,7 @@ paths:
         in: query
         name: name
         type: string
-      - description: Message Params
+      - description: Message Params, separated by '|'
         in: query
         name: params
         type: string

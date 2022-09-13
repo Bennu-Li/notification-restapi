@@ -29,15 +29,15 @@ type UserInfo struct {
 const TokenExpireDuration = time.Hour * 24
 
 // ApplyToken godoc
-// @Summary      Apply a authrization token
-// @Description  Apply a authrization token
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Param        user   query     string     true  "Use the zilliz email"
-// @Param        app    query     string     true  "application name"
-// @Success      200    {object}  map[string]any
-// @Router       /auth  [post]
+// @Summary     Apply a authrization token
+// @Description Apply a authrization token
+// @Tags        Auth
+// @Accept      json
+// @Produce     json
+// @Param       user query    string true "email address"
+// @Param       app  query    string true "application name"
+// @Success     200  {object} map[string]any
+// @Router      /auth  [post]
 func AuthHandler(c *gin.Context, db *sql.DB) {
 	u := &UserInfo{}
 	err := c.ShouldBind(u)
@@ -75,7 +75,7 @@ func AuthHandler(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	err = u.SendToken("Bearer " + tokenString)
+	err = u.SendToken("Bearer Token: " + tokenString)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusOK, gin.H{
@@ -87,14 +87,10 @@ func AuthHandler(c *gin.Context, db *sql.DB) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":  200,
-		"token": "Bearer " + tokenString,
+		"token": tokenString,
 		"msg":   "The token has been sent to your email address, and the token is valid for one day",
 	})
 	return
-}
-
-func (u *UserInfo) CheckUser() {
-	//
 }
 
 func (u *UserInfo) GenToken() (string, error) {
@@ -136,6 +132,7 @@ func (u *UserInfo) SendToken(token string) error {
 	}
 	email := requestBody["receiver"].(map[string]interface{})["spec"].(map[string]interface{})["email"].(map[string]interface{})
 	email["to"] = []string{u.User}
+	email["tmplType"] = "text"
 
 	alerts := requestBody["alert"].(map[string]interface{})["alerts"].([]interface{})[0].(map[string]interface{})
 	alerts["annotations"].(map[string]interface{})["message"] = token
@@ -159,14 +156,14 @@ func (u *UserInfo) SendToken(token string) error {
 }
 
 // RefreshToken godoc
-// @Summary      Refresh Token
-// @Description  Refresh Token
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Success      200  {object}  map[string]any
-// @Router       /refresh  [get]
-// @Security Bearer
+// @Summary     Refresh Token
+// @Description Refresh Token
+// @Tags        Auth
+// @Accept      json
+// @Produce     json
+// @Success     200 {object} map[string]any
+// @Router      /refresh  [get]
+// @Security    Bearer
 func RefreshHandler(c *gin.Context) {
 	userName, okUser := c.Get("username")
 	user := fmt.Sprintf("%v", userName)
@@ -196,21 +193,11 @@ func RefreshHandler(c *gin.Context) {
 		return
 	}
 
-	newToken := "Bearer " + tokenString
-
-	// err = u.SendToken(newToken)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	c.JSON(http.StatusOK, gin.H{
-	// 		"code": 400,
-	// 		"msg":  "send token faild",
-	// 	})
-	// 	return
-	// }
+	// newToken := "Bearer " + tokenString
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":      200,
-		"new token": newToken,
+		"new token": tokenString,
 	})
 	return
 }

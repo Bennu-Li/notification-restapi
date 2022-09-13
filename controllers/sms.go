@@ -22,18 +22,18 @@ type SMSParams struct {
 }
 
 // SendNotification godoc
-// @Summary      Send message by sms
-// @Description  Send a message to a phonenumber
-// @Tags         Send
-// @Accept       json
-// @Produce      json
-// @Param        id                 query      int             false   "Message Template Id"
-// @Param        name               query      string          false   "Message Template Name"
-// @Param        params             query      string          false   "Message Params"
-// @Param        receiver           query      string          true    "Receiver phone number, area code required"
-// @Success      200                {object}   map[string]any
-// @Router       /sms  [post]
-// @Security Bearer
+// @Summary     Send message by sms
+// @Description Send a message to a phone number
+// @Tags        Send
+// @Accept      json
+// @Produce     json
+// @Param       id       query    int    false "Message Template Id"
+// @Param       name     query    string false "Message Template Name"
+// @Param       params   query    string false "Message Params, separated by '|'"
+// @Param       receiver query    string true  "Receiver phone number, area code required"
+// @Success     200      {object} map[string]any
+// @Router      /sms  [post]
+// @Security    Bearer
 func SMS(c *gin.Context, db *sql.DB) {
 	s := &SMSParams{}
 	if c.ShouldBind(s) != nil {

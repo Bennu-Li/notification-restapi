@@ -28,22 +28,20 @@ const (
 )
 
 // SendNotification godoc
-// @Summary      Send message by email
-// @Description  Send a message to a specify email address
-// @Tags         Send
-// @Accept       json
-// @Produce      json
-// @Param        receiver       query      string  true    "email address"
-// @Param        subject        query      string  true    "email subject"
-// @Param        message        query      string  true    "email message"
-// @Param        format         query      string  false   "email content format, text or html, default text"
-// @Success      200            {object}   map[string]any
-// @Router       /email         [post]
-// @Security Bearer
+// @Summary     Send message by email
+// @Description Send a message to a specify email address
+// @Tags        Send
+// @Accept      json
+// @Produce     json
+// @Param       receiver query    string true  "email address"
+// @Param       subject  query    string true  "email subject"
+// @Param       message  query    string true  "email message"
+// @Param       format   query    string false "email content format, text or html, default text"
+// @Success     200      {object} map[string]any
+// @Router      /email         [post]
+// @Security    Bearer
 func Email(c *gin.Context, db *sql.DB) {
-	e := &EmailParams{
-		Format: "text",
-	}
+	e := &EmailParams{}
 	if c.ShouldBind(e) != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 400,
@@ -113,7 +111,11 @@ func (e *EmailParams) generateRequestBody() (io.Reader, error) {
 	}
 	email := requestBody["receiver"].(map[string]interface{})["spec"].(map[string]interface{})["email"].(map[string]interface{})
 	email["to"] = []string{e.Receiver}
-	email["tmplType"] = e.Format
+	if e.Format != "html" {
+		email["tmplType"] = "text"
+	} else {
+		email["tmplType"] = "html"
+	}
 
 	alerts := requestBody["alert"].(map[string]interface{})["alerts"].([]interface{})[0].(map[string]interface{})
 	alerts["annotations"].(map[string]interface{})["message"] = e.Message

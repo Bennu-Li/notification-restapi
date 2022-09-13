@@ -11,14 +11,14 @@ import (
 	"os"
 )
 
-// @title           Notificcation API
-// @version         1.0
-// @description     This API is used to send notification.
-// @host      localhost:8080
-// @BasePath  /api/v1
+// @title                      Notificcation API
+// @version                    1.0
+// @description                This API is used to send notification.
+// @host                       localhost:8080
+// @BasePath                   /api/v1
 // @securityDefinitions.apikey Bearer
-// @in header
-// @name Authorization
+// @in                         header
+// @name                       Authorization
 func main() {
 	db, err := models.InitMySQL(os.Getenv("MYSQLSERVER"))
 	defer db.Close()
@@ -49,22 +49,22 @@ func main() {
 	}
 
 	router := gin.Default()
-
-	router.POST("/api/addUser", func(c *gin.Context) {
-		controllers.AddUser(c, db)
-
-	})
-	router.POST("/api/addTemp", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
-		controllers.AddTemplate(c, db)
-
-	})
-	router.GET("/api/list", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
-		controllers.ListAllTemplate(c, db)
-	})
+	group := router.Group("/api/v1")
+	group2 := router.Group("/inner/v1")
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	group := router.Group("/api/v1")
+	group2.POST("/addUser", func(c *gin.Context) {
+		controllers.AddUser(c, db)
+
+	})
+	group2.POST("/addTemp", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.AddTemplate(c, db)
+
+	})
+	group2.GET("/list", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.ListAllTemplate(c, db)
+	})
 
 	group.POST("/auth", func(c *gin.Context) {
 		controllers.AuthHandler(c, db)

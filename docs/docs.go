@@ -32,7 +32,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Use the zilliz email",
+                        "description": "email address",
                         "name": "user",
                         "in": "query",
                         "required": true
@@ -135,14 +135,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "email address",
+                        "description": "feishu chatbot webhook",
                         "name": "receiver",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "email message",
+                        "description": "message content",
                         "name": "message",
                         "in": "query",
                         "required": true
@@ -224,7 +224,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Send a message to a phonenumber",
+                "description": "Send a message to a phone number",
                 "consumes": [
                     "application/json"
                 ],
@@ -250,7 +250,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Message Params",
+                        "description": "Message Params, separated by '|'",
                         "name": "params",
                         "in": "query"
                     },
