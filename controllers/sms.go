@@ -62,7 +62,10 @@ func SMS(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	reader, err := s.generateRequestBody(db)
+	userName, _ := c.Get("username")
+	user := fmt.Sprintf("%v", userName)
+
+	reader, err := s.generateRequestBody(db, user)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusOK, gin.H{
@@ -103,7 +106,7 @@ func SMS(c *gin.Context, db *sql.DB) {
 	return
 }
 
-func (s *SMSParams) generateRequestBody(db *sql.DB) (io.Reader, error) {
+func (s *SMSParams) generateRequestBody(db *sql.DB, userName string) (io.Reader, error) {
 	var requestBody map[string]interface{}
 
 	requestBody, err := ReadJson("./alert/to_sms.json")
@@ -111,7 +114,7 @@ func (s *SMSParams) generateRequestBody(db *sql.DB) (io.Reader, error) {
 		return nil, err
 	}
 
-	s.Message, err = s.mergeMessage(db)
+	s.Message, err = s.mergeMessage(db, userName)
 	if err != nil {
 		return nil, err
 	}
@@ -128,14 +131,14 @@ func (s *SMSParams) generateRequestBody(db *sql.DB) (io.Reader, error) {
 	return reader, nil
 }
 
-func (s *SMSParams) mergeMessage(db *sql.DB) (string, error) {
+func (s *SMSParams) mergeMessage(db *sql.DB, userName string) (string, error) {
 	// get message from db by s.TemplateId
 	var messages string
 	var err error
 	if s.TemplateId != 0 {
-		messages, err = models.SearchData(db, "select message from message_template where id = ?", s.TemplateId)
+		messages, err = models.SearchData(db, "select message from message_template where id = ? and registrant = ?", s.TemplateId, userName)
 	} else {
-		messages, err = models.SearchData(db, "select message from message_template where name = ?", s.TemplateName)
+		messages, err = models.SearchData(db, "select message from message_template where name = ? and registrant = ?", s.TemplateName, userName)
 	}
 	if err != nil {
 		return "", err

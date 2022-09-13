@@ -75,9 +75,9 @@ func InsertUser(db *sql.DB, sqlStr string, arg1 string, arg2 string) (int, error
 }
 
 // Get message template by messagetype ID
-func SearchData(db *sql.DB, sqlStr string, arg1 interface{}) (string, error) {
+func SearchData(db *sql.DB, sqlStr string, arg1 interface{}, arg2 string) (string, error) {
 	var message string
-	err := db.QueryRow(sqlStr, arg1).Scan(&message)
+	err := db.QueryRow(sqlStr, arg1, arg2).Scan(&message)
 	if err != nil {
 		fmt.Printf("scan failed, err:%v\n", err)
 		return "", err

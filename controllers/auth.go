@@ -130,7 +130,7 @@ func GetSecertKey() ([]byte, error) {
 }
 
 func (u *UserInfo) SendToken(token string) error {
-	requestBody, err := readJson("./alert/to_email.json")
+	requestBody, err := ReadJson("./alert/to_email.json")
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (u *UserInfo) SendToken(token string) error {
 	bytesData, _ := json.Marshal(requestBody)
 	reader := bytes.NewReader(bytesData)
 
-	responce, err := post(os.Getenv("NOTIFICATIONSERVER"), "application/json", reader)
+	responce, err := Post(os.Getenv("NOTIFICATIONSERVER"), "application/json", reader)
 
 	status := fmt.Sprintf("%v", responce["Status"])
 	if err != nil {
