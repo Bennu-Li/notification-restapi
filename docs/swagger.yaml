@@ -22,6 +22,14 @@ paths:
         name: app
         required: true
         type: string
+      - description: if send token to email, default false
+        in: query
+        name: send
+        type: boolean
+      - description: 'token expiry date, unit hours. Maximum: 72, default 24 hours.'
+        in: query
+        name: expiration
+        type: integer
       produces:
       - application/json
       responses:
@@ -119,10 +127,19 @@ paths:
       tags:
       - Template
   /refresh:
-    get:
+    post:
       consumes:
       - application/json
       description: Refresh Token
+      parameters:
+      - description: 'token expiry date, unit hours. Maximum: 72, default 24 hours.'
+        in: query
+        name: expiration
+        type: integer
+      - description: if send token to email, default false
+        in: query
+        name: send
+        type: boolean
       produces:
       - application/json
       responses:

@@ -43,6 +43,18 @@ const docTemplate = `{
                         "name": "app",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "if send token to email, default false",
+                        "name": "send",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "token expiry date, unit hours. Maximum: 72, default 24 hours.",
+                        "name": "expiration",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -189,7 +201,7 @@ const docTemplate = `{
             }
         },
         "/refresh": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "Bearer": []
@@ -206,6 +218,20 @@ const docTemplate = `{
                     "Auth"
                 ],
                 "summary": "Refresh Token",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "token expiry date, unit hours. Maximum: 72, default 24 hours.",
+                        "name": "expiration",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "if send token to email, default false",
+                        "name": "send",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

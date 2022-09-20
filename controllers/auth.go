@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -24,9 +25,11 @@ type UserClaim struct {
 type UserInfo struct {
 	User    string `json:"user" form:"user"`
 	AppName string `json:"app" form:"app"`
+	Send    bool   `json:"send" form:"send"`
+	Expires int    `json:"expiration" form:"expiration"`
 }
 
-const TokenExpireDuration = time.Hour * 24
+// const TokenExpireDuration = time.Hour * 24
 
 // ApplyToken godoc
 // @Summary     Apply a authrization token
@@ -34,8 +37,10 @@ const TokenExpireDuration = time.Hour * 24
 // @Tags        Auth
 // @Accept      json
 // @Produce     json
-// @Param       user query    string true "email address"
-// @Param       app  query    string true "application name"
+// @Param       user        query    string  true   "email address"
+// @Param       app         query    string  true   "application name"
+// @Param       send        query    bool    false  "if send token to email, default false"
+// @Param       expiration  query    int     false  "token expiry date, unit hours. Maximum: 72, default 24 hours."
 // @Success     200  {object} map[string]any
 // @Router      /auth  [post]
 func AuthHandler(c *gin.Context, db *sql.DB) {
@@ -65,7 +70,23 @@ func AuthHandler(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	tokenString, err := u.GenToken()
+	var tokenExpireDuration time.Duration
+
+	if u.Expires != 0 {
+		if u.Expires < 0 || u.Expires > 72 {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 400,
+				"msg":  "The expiration parameter should be between 0 and 72",
+			})
+			return
+		}
+		timeString := strconv.Itoa(u.Expires) + "h"
+		tokenExpireDuration, _ = time.ParseDuration(timeString)
+	} else {
+		tokenExpireDuration, _ = time.ParseDuration("24h")
+	}
+
+	tokenString, err := u.GenToken(tokenExpireDuration)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusOK, gin.H{
@@ -75,30 +96,30 @@ func AuthHandler(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	err = u.SendToken("Bearer Token: " + tokenString)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
-		return
+	if u.Send {
+		// fmt.Println("Send token to email")
+		err = u.SendToken("Bearer Token: " + tokenString)
+		if err != nil {
+			fmt.Println("Send token faild: ", err)
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code":  200,
-		"token": tokenString,
-		"msg":   "The token has been sent to your email address, and the token is valid for one day",
+		"code":       200,
+		"token":      tokenString,
+		"expiration": fmt.Sprintf("The token will be expires after %v", tokenExpireDuration),
 	})
 	return
 }
 
-func (u *UserInfo) GenToken() (string, error) {
+func (u *UserInfo) GenToken(tokenExpireDuration time.Duration) (string, error) {
+	// duration, _ := time.ParseDuration(u.Expires)
+	// fmt.Println("duration: ", duration)
 	c := UserClaim{
 		u.User,
 		u.AppName,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(TokenExpireDuration).Unix(),
+			ExpiresAt: time.Now().Add(tokenExpireDuration).Unix(),
 			Issuer:    "notification",
 		},
 	}
@@ -161,10 +182,22 @@ func (u *UserInfo) SendToken(token string) error {
 // @Tags        Auth
 // @Accept      json
 // @Produce     json
+// @Param       expiration  query    int     false  "token expiry date, unit hours. Maximum: 72, default 24 hours."
+// @Param       send        query    bool    false  "if send token to email, default false"
 // @Success     200 {object} map[string]any
-// @Router      /refresh  [get]
+// @Router      /refresh  [post]
 // @Security    Bearer
 func RefreshHandler(c *gin.Context) {
+	u := &UserInfo{}
+	err := c.ShouldBind(u)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 400,
+			"msg":  "bind params error",
+		})
+		return
+	}
+
 	userName, okUser := c.Get("username")
 	user := fmt.Sprintf("%v", userName)
 
@@ -179,11 +212,24 @@ func RefreshHandler(c *gin.Context) {
 		return
 	}
 
-	u := &UserInfo{
-		User:    user,
-		AppName: app,
+	u.User = user
+	u.AppName = app
+
+	var tokenExpireDuration time.Duration
+	if u.Expires != 0 {
+		if u.Expires < 0 || u.Expires > 72 {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 400,
+				"msg":  "The expiration parameter should be between 0 and 72",
+			})
+			return
+		}
+		tokenExpireDuration, _ = time.ParseDuration(strconv.Itoa(u.Expires) + "h")
+	} else {
+		tokenExpireDuration, _ = time.ParseDuration("24h")
 	}
-	tokenString, err := u.GenToken()
+
+	tokenString, err := u.GenToken(tokenExpireDuration)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusOK, gin.H{
@@ -193,11 +239,18 @@ func RefreshHandler(c *gin.Context) {
 		return
 	}
 
-	// newToken := "Bearer " + tokenString
+	if u.Send {
+		// fmt.Println("Send token to email")
+		err = u.SendToken("Bearer Token: " + tokenString)
+		if err != nil {
+			fmt.Println("Send token faild: ", err)
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"code":      200,
-		"new token": tokenString,
+		"code":       200,
+		"new token":  tokenString,
+		"expiration": fmt.Sprintf("The new token will be expires after %v", tokenExpireDuration),
 	})
 	return
 }

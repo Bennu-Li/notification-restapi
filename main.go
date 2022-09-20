@@ -70,7 +70,7 @@ func main() {
 		controllers.AuthHandler(c, db)
 	})
 
-	group.GET("/refresh", controllers.JWTAuthMiddleware(), controllers.RefreshHandler)
+	group.POST("/refresh", controllers.JWTAuthMiddleware(), controllers.RefreshHandler)
 
 	group.POST("/sms", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
 		controllers.SMS(c, db)
