@@ -68,6 +68,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/call": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Send an expedited call by feishu",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Send"
+                ],
+                "summary": "Send an expedited call",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "email address",
+                        "name": "receiver",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "message content",
+                        "name": "message",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "message id",
+                        "name": "message_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "times of call",
+                        "name": "retry",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "repeat call interval",
+                        "name": "interval",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/email": {
             "post": {
                 "security": [

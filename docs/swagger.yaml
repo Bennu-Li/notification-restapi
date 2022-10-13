@@ -41,6 +41,46 @@ paths:
       summary: Apply a authrization token
       tags:
       - Auth
+  /call:
+    post:
+      consumes:
+      - application/json
+      description: Send an expedited call by feishu
+      parameters:
+      - description: email address
+        in: query
+        name: receiver
+        required: true
+        type: string
+      - description: message content
+        in: query
+        name: message
+        type: string
+      - description: message id
+        in: query
+        name: message_id
+        type: string
+      - description: times of call
+        in: query
+        name: retry
+        type: string
+      - description: repeat call interval
+        in: query
+        name: interval
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Send an expedited call
+      tags:
+      - Send
   /email:
     post:
       consumes:
