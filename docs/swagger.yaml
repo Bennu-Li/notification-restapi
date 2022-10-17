@@ -49,7 +49,7 @@ paths:
       parameters:
       - description: email address
         in: query
-        name: receiver
+        name: receiver_id
         required: true
         type: string
       - description: message content
@@ -60,14 +60,14 @@ paths:
         in: query
         name: message_id
         type: string
-      - description: times of call
+      - description: times of call, unit minutes, default 10 minutes
         in: query
         name: retry
-        type: string
+        type: integer
       - description: repeat call interval
         in: query
         name: interval
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -166,6 +166,43 @@ paths:
       summary: List message template
       tags:
       - Template
+  /messagestatus:
+    post:
+      consumes:
+      - application/json
+      description: Check if the latest message has been read
+      parameters:
+      - description: email address
+        in: query
+        name: receiver
+        required: true
+        type: string
+      - description: message content
+        in: query
+        name: message
+        type: string
+      - description: message id
+        in: query
+        name: message_id
+        type: string
+      - description: 'Time range for querying history messages, unit hours, default
+          10 hours '
+        in: query
+        name: interval
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Check if message has been read
+      tags:
+      - Check
   /refresh:
     post:
       consumes:

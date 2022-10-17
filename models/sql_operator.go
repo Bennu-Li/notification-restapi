@@ -156,6 +156,19 @@ func UserBehavior(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 stri
 	return err
 }
 
+//
+func ReceiverInfo(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string) error {
+	stmt, err := db.Prepare(sqlStr)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(arg1, arg2, arg3)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 //Check user auth
 func CheckUserAuth(db *sql.DB, sqlStr string, arg1 string) (bool, error) {
 	var count int
@@ -170,4 +183,15 @@ func CheckUserAuth(db *sql.DB, sqlStr string, arg1 string) (bool, error) {
 	} else {
 		return true, nil
 	}
+}
+
+//Get chat_id by receiver_id
+func GetChatIdByReceiver(db *sql.DB, sqlStr string, arg1 string) (string, error) {
+	var chatId string
+	err := db.QueryRow(sqlStr, arg1).Scan(&chatId)
+	if err != nil {
+		// fmt.Printf("scan failed, err:%v\n", err)
+		return "", err
+	}
+	return chatId, nil
 }

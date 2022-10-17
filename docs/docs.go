@@ -90,7 +90,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "email address",
-                        "name": "receiver",
+                        "name": "receiver_id",
                         "in": "query",
                         "required": true
                     },
@@ -107,13 +107,13 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "times of call",
+                        "type": "integer",
+                        "description": "times of call, unit minutes, default 10 minutes",
                         "name": "retry",
                         "in": "query"
                     },
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "repeat call interval",
                         "name": "interval",
                         "in": "query"
@@ -251,6 +251,62 @@ const docTemplate = `{
                     "Template"
                 ],
                 "summary": "List message template",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/messagestatus": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Check if the latest message has been read",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Check"
+                ],
+                "summary": "Check if message has been read",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "email address",
+                        "name": "receiver",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "message content",
+                        "name": "message",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "message id",
+                        "name": "message_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Time range for querying history messages, unit hours, default 10 hours ",
+                        "name": "interval",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

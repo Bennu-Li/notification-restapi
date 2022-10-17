@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/Bennu-Li/notification-restapi/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -13,7 +14,7 @@ import (
 )
 
 type CallParams struct {
-	Receiver  string `json:"receiver" form:"receiver"`
+	Receiver  string `json:"receiver_id" form:"receiver_id"`
 	Message   string `json:"message" form:"message"`
 	MessageId string `json:"message_id" form:"message_id"`
 	Retry     int    `json:"retry" form:"retry"`
@@ -31,11 +32,11 @@ var (
 // @Tags        Send
 // @Accept      json
 // @Produce     json
-// @Param       receiver    query    string true   "email address"
-// @Param       message     query    string false  "message content"
-// @Param       message_id  query    string false  "message id"
-// @Param       retry       query    int    false  "times of call"
-// @Param       interval    query    int    false  "repeat call interval"
+// @Param       receiver_id    query    string true   "email address"
+// @Param       message        query    string false  "message content"
+// @Param       message_id     query    string false  "message id"
+// @Param       retry          query    int    false  "times of call, unit minutes, default 10 minutes"
+// @Param       interval       query    int    false  "repeat call interval"
 // @Success     200      {object} map[string]any
 // @Router      /call         [post]
 // @Security    Bearer
@@ -61,7 +62,7 @@ func Call(c *gin.Context, db *sql.DB) {
 	}
 
 	// Get Token
-	token, err := genTenantAccessToken(appId, appSecret)
+	token, err := GenTenantAccessToken(appId, appSecret)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 400,
@@ -72,8 +73,9 @@ func Call(c *gin.Context, db *sql.DB) {
 	// fmt.Println(token)
 
 	// Send a Message to User by Bot to get a messageID
+	var chatId string
 	if call.MessageId == "" {
-		err = call.sendMessagToUser(token)
+		chatId, err = call.sendMessagToUser(token)
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{
 				"code": 400,
@@ -84,7 +86,7 @@ func Call(c *gin.Context, db *sql.DB) {
 	}
 
 	//根据邮箱获取 user_id
-	userId, err := call.getUserIdByEmail(token)
+	userId, err := GetUserIdByEmail(call.Receiver, token)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 400,
@@ -112,7 +114,12 @@ func Call(c *gin.Context, db *sql.DB) {
 
 	err = RecordBehavior(c, db, "Message expedited", call.Receiver, "200")
 	if err != nil {
-		fmt.Println("record user behavior error: ", err)
+		fmt.Println("Error: record user behavior error: ", err)
+	}
+
+	err = RecordReceiverInfo(c, db, userId, call.Receiver, chatId)
+	if err != nil {
+		fmt.Println("Error: record receiver info error: ", err)
 	}
 
 	if call.Retry != 0 {
@@ -122,7 +129,7 @@ func Call(c *gin.Context, db *sql.DB) {
 	return
 }
 
-func genTenantAccessToken(appId, appSecret string) (string, error) {
+func GenTenantAccessToken(appId, appSecret string) (string, error) {
 	url := "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
 	method := "POST"
 	payload := strings.NewReader("{\"app_id\": \"" + appId + "\", \"app_secret\": \"" + appSecret + "\"}")
@@ -154,7 +161,7 @@ func genTenantAccessToken(appId, appSecret string) (string, error) {
 	return token.(string), nil
 }
 
-func (call *CallParams) sendMessagToUser(authToken string) error {
+func (call *CallParams) sendMessagToUser(authToken string) (string, error) {
 	url := "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=email"
 	method := "POST"
 
@@ -172,13 +179,13 @@ func (call *CallParams) sendMessagToUser(authToken string) error {
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
 	if err != nil {
-		return err
+		return "", err
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+authToken)
 	res, err := client.Do(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer res.Body.Close()
 
@@ -188,26 +195,30 @@ func (call *CallParams) sendMessagToUser(authToken string) error {
 
 	if jsonData["code"].(float64) != 0 {
 		err, _ := jsonData["msg"].(string)
-		return fmt.Errorf(err)
+		return "", fmt.Errorf(err)
 	}
 
 	messageData, ok := jsonData["data"].(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("Get the message_id faild while sending message with bot")
+		return "", fmt.Errorf("Get the message_id faild while sending message with bot")
 	}
 
 	call.MessageId, ok = messageData["message_id"].(string)
 	if !ok {
-		return fmt.Errorf("Get the message_id faild while sending message by bot")
+		return "", fmt.Errorf("Get the message_id faild while sending message by bot")
+	}
+	chatId, ok := messageData["chat_id"].(string)
+	if !ok {
+		return "", fmt.Errorf("Get the chat_id faild while sending message by bot")
 	}
 
-	return nil
+	return chatId, nil
 }
 
-func (call *CallParams) getUserIdByEmail(authToken string) (string, error) {
+func GetUserIdByEmail(receiver, authToken string) (string, error) {
 	url := "https://open.feishu.cn/open-apis/contact/v3/users/batch_get_id?user_id_type=user_id"
 	method := "POST"
-	payload := strings.NewReader("{\"emails\": [\"" + call.Receiver + "\"]}")
+	payload := strings.NewReader("{\"emails\": [\"" + receiver + "\"]}")
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, payload)
 	if err != nil {
@@ -244,7 +255,8 @@ func (call *CallParams) getUserIdByEmail(authToken string) (string, error) {
 	}
 
 	user, _ := userList[0].(map[string]interface{})
-	return user["user_id"].(string), nil
+	userId, _ := user["user_id"].(string)
+	return userId, nil
 }
 
 func (call *CallParams) callPhone(userId string, authToken string) error {
@@ -355,4 +367,10 @@ func (call *CallParams) reCall(token, userId string) {
 
 	}
 	return
+}
+
+func RecordReceiverInfo(c *gin.Context, db *sql.DB, userId, receiver, chatId string) error {
+	sqlStr := "INSERT INTO receiver_info(receiverid, receiver, chatid) values (?, ?, ?);"
+	err := models.ReceiverInfo(db, sqlStr, userId, receiver, chatId)
+	return err
 }
