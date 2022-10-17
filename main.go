@@ -43,6 +43,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	err = models.CreateTable(db, "./database/db_receiverinfo_mysql.sql")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	docHost := os.Getenv("DOCHOST")
 	if docHost != "" {
 		docs.SwaggerInfo.Host = docHost + ":8080"
@@ -86,6 +92,10 @@ func main() {
 
 	group.POST("/call", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
 		controllers.Call(c, db)
+	})
+
+	group.POST("/messagestatus", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.MessageStatus(c, db)
 	})
 
 	group.GET("/list", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
