@@ -84,6 +84,10 @@ func main() {
 		controllers.Feishu(c, db)
 	})
 
+	group.POST("/call", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.Call(c, db)
+	})
+
 	group.GET("/list", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
 		controllers.ListTemplate(c, db)
 	})
