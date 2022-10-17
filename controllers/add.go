@@ -49,7 +49,7 @@ func AddTemplate(c *gin.Context, db *sql.DB) {
 		})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"code":      200,
+			"code":      0,
 			"messageID": id,
 			"msg":       "success",
 		})

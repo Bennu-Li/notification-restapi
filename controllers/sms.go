@@ -36,7 +36,8 @@ type SMSParams struct {
 // @Security    Bearer
 func SMS(c *gin.Context, db *sql.DB) {
 	s := &SMSParams{}
-	if c.ShouldBind(s) != nil {
+	err := c.ShouldBind(s)
+	if err != nil {
 		ReturnErrorBody(c, 1, "Your request parameter invalid.", err)
 		return
 	}
@@ -48,7 +49,6 @@ func SMS(c *gin.Context, db *sql.DB) {
 
 	// 需要增加一个判断用户所选模版是否属于用户自己注册的模版
 
-
 	userName, _ := c.Get("username")
 	user := fmt.Sprintf("%v", userName)
 
@@ -56,10 +56,6 @@ func SMS(c *gin.Context, db *sql.DB) {
 	if err != nil {
 		ReturnErrorBody(c, 1, "faild to generate request body.", err)
 		fmt.Println(err)
-		// c.JSON(http.StatusOK, gin.H{
-		// 	"code": 400,
-		// 	"msg":  fmt.Sprintf("%v", err),
-		// })
 		return
 	}
 
@@ -76,16 +72,11 @@ func SMS(c *gin.Context, db *sql.DB) {
 	}
 	fmt.Println("RSP: {Status:", responce["Status"], ", Message:", responce["Message"], "}")
 	if status != "200" {
-		ReturnErrorBody(c, 1, "faild to send message.", fmt.Errorf(responce["Message"]))
-		// c.JSON(http.StatusOK, gin.H{
-		// 	"code": 400,
-		// 	"msg":  fmt.Sprintf("%v", responce["Message"]),
-		// })
-
+		ReturnErrorBody(c, 1, "faild to send message.", fmt.Errorf("%v", responce["Message"]))
 		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"code": 200,
+			"code": 0,
 			"msg":  "success",
 		})
 	}

@@ -12,8 +12,8 @@ import (
 )
 
 type FeishuParams struct {
-	Receiver string `json:"receiver" form:"receiver"`
-	Message  string `json:"message" form:"message"`
+	Receiver string `json:"receiver" form:"receiver" binding:"required"`
+	Message  string `json:"message" form:"message" binding:"required"`
 }
 
 // SendNotification godoc
@@ -29,34 +29,20 @@ type FeishuParams struct {
 // @Security    Bearer
 func Feishu(c *gin.Context, db *sql.DB) {
 	f := &FeishuParams{}
-	if c.ShouldBind(f) != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "bind params error",
-		})
-		return
-	}
-
-	if (f.Receiver == "") || (f.Message == "") {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "The parameters receiver and message cannot be empty",
-		})
+	err := c.ShouldBind(f)
+	if err != nil {
+		ReturnErrorBody(c, 1, "Your request parameter invalid.", err)
 		return
 	}
 
 	reader, err := f.generateRequestBody()
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
+		ReturnErrorBody(c, 1, "faild to generate request body.", err)
 		return
 	}
 
 	responce, err := Post(os.Getenv("NOTIFICATIONSERVER"), "application/json", reader)
-
 	// Record send message
 	status := fmt.Sprintf("%v", responce["Status"])
 	errRecord := RecordBehavior(c, db, f.Message, f.Receiver, status)
@@ -66,23 +52,17 @@ func Feishu(c *gin.Context, db *sql.DB) {
 
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
+		ReturnErrorBody(c, 1, "faild to send message.", err)
 		return
 	}
 	// fmt.Println("RSP: {Status:", responce["Status"], ", Message:", responce["Message"], "}")
 	if status != "200" {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", responce["Message"]),
-		})
+		ReturnErrorBody(c, 1, "faild to send message.", fmt.Errorf("%v", responce["Message"]))
 		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"code": 200,
-			"msg":  "send successfully",
+			"code": 0,
+			"msg":  "success",
 		})
 	}
 	return
