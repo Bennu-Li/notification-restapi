@@ -8,10 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
+	"net/http"
 	"os"
 )
 
-// @title                      Notificcation API
+// @title                      Notification API
 // @version                    1.0
 // @description                This API is used to send notification.
 // @host                       localhost:8080
@@ -51,7 +52,7 @@ func main() {
 
 	docHost := os.Getenv("DOCHOST")
 	if docHost != "" {
-		docs.SwaggerInfo.Host = docHost + ":8080"
+		docs.SwaggerInfo.Host = docHost
 	}
 
 	router := gin.Default()
@@ -59,6 +60,12 @@ func main() {
 	group2 := router.Group("/inner/v1")
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 0,
+			"msg":  "Welcome to use notification api to send your message!",
+		})
+	})
 
 	group2.POST("/addUser", func(c *gin.Context) {
 		controllers.AddUser(c, db)

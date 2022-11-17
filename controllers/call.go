@@ -14,8 +14,8 @@ import (
 )
 
 type CallParams struct {
-	Receiver  string `json:"receiver_id" form:"receiver_id"`
-	Message   string `json:"message" form:"message"`
+	Receiver  string `json:"receiver" form:"receiver" binding:"required"`
+	Message   string `json:"message"  form:"message"`
 	MessageId string `json:"message_id" form:"message_id"`
 	Retry     int    `json:"retry" form:"retry"`
 	Interval  int    `json:"interval" form:"interval"`
@@ -32,11 +32,11 @@ var (
 // @Tags        Send
 // @Accept      json
 // @Produce     json
-// @Param       receiver_id    query    string true   "email address"
+// @Param       receiver       query    string true   "email address"
 // @Param       message        query    string false  "message content"
 // @Param       message_id     query    string false  "message id"
-// @Param       retry          query    int    false  "times of call, unit minutes, default 10 minutes"
-// @Param       interval       query    int    false  "repeat call interval"
+// @Param       retry          query    int    false  "times of call, default 0"
+// @Param       interval       query    int    false  "repeat call interval, unit minutes, default 10 minutes"
 // @Success     200      {object} map[string]any
 // @Router      /call         [post]
 // @Security    Bearer
@@ -45,29 +45,15 @@ func Call(c *gin.Context, db *sql.DB) {
 	// Receive params
 	call := &CallParams{}
 	if c.ShouldBind(call) != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "bind params error",
-		})
+		ReturnErrorBody(c, 1, "Your request parameter invalid.", err)
 		return
 	}
 	// fmt.Println(*call)
 
-	if call.Receiver == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "The parameters receiver cannot be empty",
-		})
-		return
-	}
-
 	// Get Token
 	token, err := GenTenantAccessToken(appId, appSecret)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
+		ReturnErrorBody(c, 2, "faild to generate feishu access token", err)
 		return
 	}
 	// fmt.Println(token)
@@ -77,10 +63,7 @@ func Call(c *gin.Context, db *sql.DB) {
 	if call.MessageId == "" {
 		chatId, err = call.sendMessagToUser(token)
 		if err != nil {
-			c.JSON(http.StatusOK, gin.H{
-				"code": 400,
-				"msg":  fmt.Sprintf("%v", err),
-			})
+			ReturnErrorBody(c, 3, "faild to  send message to feishu receiver", err)
 			return
 		}
 	}
@@ -88,25 +71,19 @@ func Call(c *gin.Context, db *sql.DB) {
 	//根据邮箱获取 user_id
 	userId, err := GetUserIdByEmail(call.Receiver, token)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
+		ReturnErrorBody(c, 4, "faild to get user_id in feishu by receiver_email, check the parameter: receiver", err)
 		return
 	}
 
 	// 发送加急消息
 	err = call.callPhone(userId, token)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
+		ReturnErrorBody(c, 5, "Failed to send call expedite", err)
 		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"code": 200,
-			"msg":  "Successfully sent an expedited message by feishu bot",
+			"code": 0,
+			"msg":  "Success",
 		})
 	}
 
@@ -114,12 +91,12 @@ func Call(c *gin.Context, db *sql.DB) {
 
 	err = RecordBehavior(c, db, "Message expedited", call.Receiver, "200")
 	if err != nil {
-		fmt.Println("Error: record user behavior error: ", err)
+		fmt.Println("Error: faild to record user behavior to db: ", err)
 	}
 
 	err = RecordReceiverInfo(c, db, userId, call.Receiver, chatId)
 	if err != nil {
-		fmt.Println("Error: record receiver info error: ", err)
+		fmt.Println("Error: faild to record receiver info: ", err)
 	}
 
 	if call.Retry != 0 {

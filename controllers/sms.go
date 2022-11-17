@@ -17,7 +17,7 @@ type SMSParams struct {
 	TemplateId    int    `json:"id" form:"id"`
 	TemplateName  string `json:"name" form:"name"`
 	MessageParams string `json:"params" form:"params"`
-	Receiver      string `json:"receiver" form:"receiver"`
+	Receiver      string `json:"receiver" form:"receiver" binding:"required"`
 	Message       string
 }
 
@@ -36,42 +36,26 @@ type SMSParams struct {
 // @Security    Bearer
 func SMS(c *gin.Context, db *sql.DB) {
 	s := &SMSParams{}
-	if c.ShouldBind(s) != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "bind params error",
-		})
+	err := c.ShouldBind(s)
+	if err != nil {
+		ReturnErrorBody(c, 1, "Your request parameter invalid.", err)
 		return
 	}
 
 	if s.TemplateId == 0 && s.TemplateName == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "Requires one of template id or name",
-		})
+		ReturnErrorBody(c, 1, "Your request parameter invalid.", fmt.Errorf("Requires one of template id or name"))
 		return
 	}
 
 	// 需要增加一个判断用户所选模版是否属于用户自己注册的模版
-
-	if s.Receiver == "" {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "receiver cannot be empty",
-		})
-		return
-	}
 
 	userName, _ := c.Get("username")
 	user := fmt.Sprintf("%v", userName)
 
 	reader, err := s.generateRequestBody(db, user)
 	if err != nil {
+		ReturnErrorBody(c, 1, "faild to generate request body.", err)
 		fmt.Println(err)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
 		return
 	}
 
@@ -82,25 +66,18 @@ func SMS(c *gin.Context, db *sql.DB) {
 		fmt.Println("record error: ", errRecord)
 	}
 	if err != nil {
+		ReturnErrorBody(c, 1, "faild to send message.", err)
 		fmt.Println(err)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
 		return
 	}
 	fmt.Println("RSP: {Status:", responce["Status"], ", Message:", responce["Message"], "}")
 	if status != "200" {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", responce["Message"]),
-		})
-
+		ReturnErrorBody(c, 1, "faild to send message.", fmt.Errorf("%v", responce["Message"]))
 		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"code": 200,
-			"msg":  "send successfully",
+			"code": 0,
+			"msg":  "success",
 		})
 	}
 	return

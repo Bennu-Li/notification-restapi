@@ -45,7 +45,7 @@ func MessageStatus(c *gin.Context, db *sql.DB) {
 	// Get Token
 	token, err := GenTenantAccessToken(appId, appSecret)
 	if err != nil {
-		ReturnErrorBody(c, 2, "generate feishu access token faild", err)
+		ReturnErrorBody(c, 2, "faild to generate feishu access token", err)
 		return
 	}
 
@@ -60,20 +60,20 @@ func MessageStatus(c *gin.Context, db *sql.DB) {
 		//给 user 发送消息获取 chat_id
 		chatId, err := sendMessagToUser(m.Receiver, m.Message, token, c)
 		if err != nil {
-			ReturnErrorBody(c, 3, "send message to the receiver by feishu faild, check the parameter receiver", err)
+			ReturnErrorBody(c, 3, "faild to send message to the receiver by feishu, check the parameter receiver", err)
 			return
 		}
 
 		//根据邮箱获取 user_id
 		userId, err := GetUserIdByEmail(m.Receiver, token)
 		if err != nil {
-			ReturnErrorBody(c, 4, "Get user_id in feishu by user email faild, check the parameter: receiver", err)
+			ReturnErrorBody(c, 4, "faild to get user_id in feishu by user email, check the parameter: receiver", err)
 			return
 		}
 		//将receiver信息存入数据库中
 		err = RecordReceiverInfo(c, db, userId, m.Receiver, chatId)
 		if err != nil {
-			ReturnErrorBody(c, 5, "Record the receiver to db faild", err)
+			ReturnErrorBody(c, 5, "faild to record the receiver to db", err)
 			return
 		}
 
@@ -85,13 +85,13 @@ func MessageStatus(c *gin.Context, db *sql.DB) {
 	//根据 chatId 查找过去一段时间范围内的最新一条历史信息
 	messageId, err := getHistoryMessage(chatId, token, m.Interval)
 	if err != nil {
-		ReturnErrorBody(c, 6, "Get history message faild", err)
+		ReturnErrorBody(c, 6, "faild to get history message", err)
 		return
 	}
 	//查看信息已读信息
 	ifRead, err := checkMessageStatus(messageId, token)
 	if err != nil {
-		ReturnErrorBody(c, 7, "Get history message status faild", err)
+		ReturnErrorBody(c, 7, "faild to get history message status", err)
 		return
 	}
 	ReturnResBody(c, 0, ifRead)

@@ -14,9 +14,9 @@ import (
 )
 
 type EmailParams struct {
-	Receiver string `json:"receiver" form:"receiver"`
-	Subject  string `json:"subject" form:"subject"`
-	Message  string `json:"message" form:"message"`
+	Receiver string `json:"receiver" form:"receiver" binding:"required"`
+	Subject  string `json:"subject" form:"subject" binding:"required"`
+	Message  string `json:"message" form:"message" binding:"required"`
 	Format   string `json:"format" form:"format"`
 }
 
@@ -42,31 +42,17 @@ const (
 // @Security    Bearer
 func Email(c *gin.Context, db *sql.DB) {
 	e := &EmailParams{}
-	if c.ShouldBind(e) != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "bind params error",
-		})
-		return
-	}
-
-	fmt.Println(*e)
-
-	if (e.Receiver == "") || (e.Subject == "") || (e.Message == "") {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "The parameters receiver/subject/message/format cannot be empty",
-		})
+	err := c.ShouldBind(e)
+	if err != nil {
+		fmt.Println(err)
+		ReturnErrorBody(c, 1, "Your request parameter invalid.", err)
 		return
 	}
 
 	reader, err := e.generateRequestBody()
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
+		ReturnErrorBody(c, 1, "faild to generate request body.", err)
 		return
 	}
 
@@ -81,22 +67,16 @@ func Email(c *gin.Context, db *sql.DB) {
 
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", err),
-		})
+		ReturnErrorBody(c, 1, "faild to send message.", err)
 		return
 	}
 	if status != "200" {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  fmt.Sprintf("%v", responce["Message"]),
-		})
+		ReturnErrorBody(c, 1, "faild to send message.", fmt.Errorf("%v", responce["Message"]))
 		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"code": 200,
-			"msg":  "send successfully",
+			"code": 0,
+			"msg":  "success",
 		})
 	}
 	return

@@ -90,7 +90,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "email address",
-                        "name": "receiver_id",
+                        "name": "receiver",
                         "in": "query",
                         "required": true
                     },
@@ -108,13 +108,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "times of call, unit minutes, default 10 minutes",
+                        "description": "times of call, default 0",
                         "name": "retry",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "repeat call interval",
+                        "description": "repeat call interval, unit minutes, default 10 minutes",
                         "name": "interval",
                         "in": "query"
                     }
@@ -433,7 +433,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "Notificcation API",
+	Title:            "Notification API",
 	Description:      "This API is used to send notification.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
