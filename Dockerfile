@@ -5,6 +5,7 @@ RUN make build
 
 FROM alpine
 WORKDIR /app
+RUN apk update && apk add tzdata
 RUN mkdir -p /app/database
 RUN mkdir -p /app/alert
 RUN mkdir -p /app/docs

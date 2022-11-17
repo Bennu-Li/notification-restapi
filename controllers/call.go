@@ -35,8 +35,8 @@ var (
 // @Param       receiver       query    string true   "email address"
 // @Param       message        query    string false  "message content"
 // @Param       message_id     query    string false  "message id"
-// @Param       retry          query    int    false  "times of call, unit minutes, default 10 minutes"
-// @Param       interval       query    int    false  "repeat call interval"
+// @Param       retry          query    int    false  "times of call, default 0"
+// @Param       interval       query    int    false  "repeat call interval, unit minutes, default 10 minutes"
 // @Success     200      {object} map[string]any
 // @Router      /call         [post]
 // @Security    Bearer
@@ -82,7 +82,7 @@ func Call(c *gin.Context, db *sql.DB) {
 		return
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"code": 200,
+			"code": 0,
 			"msg":  "Success",
 		})
 	}

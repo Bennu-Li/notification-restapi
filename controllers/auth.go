@@ -23,8 +23,8 @@ type UserClaim struct {
 }
 
 type UserInfo struct {
-	User    string `json:"user" form:"user" binding:"required"`
-	AppName string `json:"app" form:"app" binding:"required"`
+	User    string `json:"user" form:"user" `
+	AppName string `json:"app" form:"app" `
 	Send    bool   `json:"send" form:"send"`
 	Expires int    `json:"expiration" form:"expiration"`
 }
@@ -51,6 +51,11 @@ func AuthHandler(c *gin.Context, db *sql.DB) {
 		return
 	}
 
+	if u.User == "" || u.AppName == "" {
+		ReturnErrorBody(c, 1, "Your request parameter invalid.", fmt.Errorf("Error: Field validation for user or app failed, it can not be null"))
+		return
+	}
+
 	ok, err := models.CheckUserAuth(db, "select count(*) from user_info where user = ?", u.User)
 	if err != nil {
 		ReturnErrorBody(c, 1, "Faild to check user authorization", err)
@@ -63,7 +68,7 @@ func AuthHandler(c *gin.Context, db *sql.DB) {
 
 	var tokenExpireDuration time.Duration
 
-	if u.Expires != 0 {
+	if u.Expires != 0 && u.Expires != -1 {
 		if u.Expires < 0 || u.Expires > 72 {
 			ReturnErrorBody(c, 1, "The expiration parameter should be between 0 and 72", fmt.Errorf(""))
 			return
@@ -91,7 +96,9 @@ func AuthHandler(c *gin.Context, db *sql.DB) {
 
 	data := make(map[string]string)
 	data["token"] = tokenString
-	data["expiration"] = fmt.Sprintf("The token will be expires after %v", tokenExpireDuration)
+	if u.Expires != -1 {
+		data["expiration"] = fmt.Sprintf("The token will be expires after %v", tokenExpireDuration)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,
@@ -104,13 +111,24 @@ func AuthHandler(c *gin.Context, db *sql.DB) {
 func (u *UserInfo) GenToken(tokenExpireDuration time.Duration) (string, error) {
 	// duration, _ := time.ParseDuration(u.Expires)
 	// fmt.Println("duration: ", duration)
-	c := UserClaim{
-		u.User,
-		u.AppName,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenExpireDuration).Unix(),
-			Issuer:    "notification",
-		},
+	var c UserClaim
+	if u.Expires == -1 {
+		c = UserClaim{
+			u.User,
+			u.AppName,
+			jwt.StandardClaims{
+				Issuer: "notification",
+			},
+		}
+	} else {
+		c = UserClaim{
+			u.User,
+			u.AppName,
+			jwt.StandardClaims{
+				ExpiresAt: time.Now().Add(tokenExpireDuration).Unix(),
+				Issuer:    "notification",
+			},
+		}
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
@@ -180,10 +198,7 @@ func RefreshHandler(c *gin.Context) {
 	u := &UserInfo{}
 	err := c.ShouldBind(u)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 400,
-			"msg":  "bind params error",
-		})
+		ReturnErrorBody(c, 1, "Your request parameter invalid.", err)
 		return
 	}
 

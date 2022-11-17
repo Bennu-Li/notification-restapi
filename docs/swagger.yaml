@@ -3,7 +3,7 @@ host: localhost:8080
 info:
   contact: {}
   description: This API is used to send notification.
-  title: Notificcation API
+  title: Notification API
   version: "1.0"
 paths:
   /auth:
@@ -49,7 +49,7 @@ paths:
       parameters:
       - description: email address
         in: query
-        name: receiver_id
+        name: receiver
         required: true
         type: string
       - description: message content
@@ -60,11 +60,11 @@ paths:
         in: query
         name: message_id
         type: string
-      - description: times of call, unit minutes, default 10 minutes
+      - description: times of call, default 0
         in: query
         name: retry
         type: integer
-      - description: repeat call interval
+      - description: repeat call interval, unit minutes, default 10 minutes
         in: query
         name: interval
         type: integer
