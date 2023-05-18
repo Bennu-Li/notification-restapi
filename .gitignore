@@ -2,3 +2,4 @@ notification
 .env
 vendor
 notification-api.yaml
+deploy.yaml

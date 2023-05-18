@@ -195,7 +195,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "Send a message to feishu",
+                "description": "Send a message to a feishu receiver by feishu bot",
                 "consumes": [
                     "application/json"
                 ],
@@ -205,7 +205,51 @@ const docTemplate = `{
                 "tags": [
                     "Send"
                 ],
-                "summary": "Send message by feishu",
+                "summary": "Send a message to feishu receiver",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "email address",
+                        "name": "receiver",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "message content",
+                        "name": "message",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/group": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Send a message to a feishu group by feishu bot webhook",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Send"
+                ],
+                "summary": "Send message by feishu bot",
                 "parameters": [
                     {
                         "type": "string",

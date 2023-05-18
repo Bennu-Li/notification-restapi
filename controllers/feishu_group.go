@@ -17,17 +17,17 @@ type FeishuParams struct {
 }
 
 // SendNotification godoc
-// @Summary     Send message by feishu
-// @Description Send a message to feishu
+// @Summary     Send message by feishu bot
+// @Description Send a message to a feishu group by feishu bot webhook
 // @Tags        Send
 // @Accept      json
 // @Produce     json
 // @Param       receiver query    string true "feishu chatbot webhook"
 // @Param       message  query    string true "message content"
 // @Success     200      {object} map[string]any
-// @Router      /feishu        [post]
+// @Router      /group        [post]
 // @Security    Bearer
-func Feishu(c *gin.Context, db *sql.DB) {
+func FeishuGroup(c *gin.Context, db *sql.DB) {
 	f := &FeishuParams{}
 	err := c.ShouldBind(f)
 	if err != nil {

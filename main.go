@@ -67,6 +67,7 @@ func main() {
 		})
 	})
 
+	// Add use to grant perssion to use the api. (params: name&app)
 	group2.POST("/addUser", func(c *gin.Context) {
 		controllers.AddUser(c, db)
 
@@ -94,7 +95,11 @@ func main() {
 	})
 
 	group.POST("/feishu", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
-		controllers.Feishu(c, db)
+		controllers.SendMessage(c, db)
+	})
+
+	group.POST("/group", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.FeishuGroup(c, db)
 	})
 
 	group.POST("/call", controllers.JWTAuthMiddleware(), func(c *gin.Context) {

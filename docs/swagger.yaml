@@ -123,7 +123,35 @@ paths:
     post:
       consumes:
       - application/json
-      description: Send a message to feishu
+      description: Send a message to a feishu receiver by feishu bot
+      parameters:
+      - description: email address
+        in: query
+        name: receiver
+        required: true
+        type: string
+      - description: message content
+        in: query
+        name: message
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Send a message to feishu receiver
+      tags:
+      - Send
+  /group:
+    post:
+      consumes:
+      - application/json
+      description: Send a message to a feishu group by feishu bot webhook
       parameters:
       - description: feishu chatbot webhook
         in: query
@@ -145,7 +173,7 @@ paths:
             type: object
       security:
       - Bearer: []
-      summary: Send message by feishu
+      summary: Send message by feishu bot
       tags:
       - Send
   /list:
