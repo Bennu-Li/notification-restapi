@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
+	// "fmt"
 	"github.com/PagerDuty/go-pagerduty"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -12,7 +12,7 @@ import (
 
 type PagerdutyParams struct {
 	Summary  string `json:"summary" form:"summary" binding:"required"`
-	Source   string `json:"source" form:"source"`
+	Source   string `json:"source" form:"source" binding:"required"`
 	Severity string `json:"severity" form:"severity" binding:"required"`
 	Details  string `json:"details" form:"details" binding:"required"`
 }
@@ -36,7 +36,7 @@ var (
 // @Accept      json
 // @Produce     json
 // @Param       summary   query    string true  "the summary of the alert"
-// @Param       source    query    string false  "the source of the alert"
+// @Param       source    query    string true  "the source of the alert"
 // @Param       severity  query    string true  "the severity of the alert"
 // @Param       details   query    string true "the details of the alert"
 // @Success     200      {object} map[string]any
@@ -63,10 +63,10 @@ func Pagerduty(c *gin.Context, db *sql.DB) {
 		log.Printf("User: %s", user.Name)
 	}
 
-	if p.Source == "" {
-		sender, _ := c.Get("username")
-		p.Source = fmt.Sprintf("%v", sender)
-	}
+	// if p.Source == "" {
+	// 	sender, _ := c.Get("username")
+	// 	p.Source = fmt.Sprintf("%v", sender)
+	// }
 
 	// send an alert
 	var alertOpts pagerduty.V2Event

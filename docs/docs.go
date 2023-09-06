@@ -432,7 +432,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "the source of the alert",
                         "name": "source",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "type": "string",

@@ -271,6 +271,7 @@ paths:
       - description: the source of the alert
         in: query
         name: source
+        required: true
         type: string
       - description: the severity of the alert
         in: query
