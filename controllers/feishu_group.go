@@ -37,7 +37,7 @@ func FeishuGroup(c *gin.Context, db *sql.DB) {
 
 	userName, ok := c.Get("username")
 	if ok {
-		f.Message = f.Message + "----- from " + fmt.Sprintf("%v", userName)
+		f.Message = f.Message + "    -- from " + fmt.Sprintf("%v", userName)
 	} else {
 		fmt.Println("get userName error")
 	}
