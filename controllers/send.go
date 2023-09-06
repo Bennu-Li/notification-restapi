@@ -15,7 +15,7 @@ import (
 
 type SendParams struct {
 	Receiver string `json:"receiver" form:"receiver" binding:"required"`
-	Message  string `json:"message"  form:"message"`
+	Message  string `json:"message"  form:"message" binding:"required"`
 }
 
 // var (
@@ -30,7 +30,7 @@ type SendParams struct {
 // @Accept      json
 // @Produce     json
 // @Param       receiver       query    string true   "email address"
-// @Param       message        query    string false  "message content"
+// @Param       message        query    string true  "message content"
 // @Success     200      {object} map[string]any
 // @Router      /feishu         [post]
 // @Security    Bearer
@@ -43,13 +43,17 @@ func SendMessage(c *gin.Context, db *sql.DB) {
 		return
 	}
 
+	userName, ok := c.Get("username")
+	if ok {
+		s.Message = s.Message + "   -- from " + fmt.Sprintf("%v", userName)
+	}
+
 	// Get Token
 	token, err := GenTenantAccessToken(appId, appSecret)
 	if err != nil {
 		ReturnErrorBody(c, 2, "faild to generate feishu access token", err)
 		return
 	}
-	// fmt.Println(token)
 
 	// Send a Message to User by Bot to get a messageID
 	// var chatId string
@@ -67,9 +71,15 @@ func SendMessage(c *gin.Context, db *sql.DB) {
 
 	fmt.Println("Successfully sent an message")
 
-	// err = RecordBehavior(c, db, "Send message to feishu receiver", s.Receiver, "200")
+	err = RecordBehavior(c, db, "feishu", s.Message, s.Receiver, "200")
+	if err != nil {
+		fmt.Println("Error: faild to record user behavior to db: ", err)
+	}
+
+	// userId, err := GetUserIdByEmail(s.Receiver, token)
 	// if err != nil {
-	// 	fmt.Println("Error: faild to record user behavior to db: ", err)
+	// 	ReturnErrorBody(c, 4, "faild to get user_id in feishu by receiver_email, check the parameter: receiver", err)
+	// 	return
 	// }
 
 	// err = RecordReceiverInfo(c, db, userId, s.Receiver, 0)
@@ -80,45 +90,9 @@ func SendMessage(c *gin.Context, db *sql.DB) {
 	return
 }
 
-// func GenTenantAccessToken(appId, appSecret string) (string, error) {
-// 	url := "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
-// 	method := "POST"
-// 	payload := strings.NewReader("{\"app_id\": \"" + appId + "\", \"app_secret\": \"" + appSecret + "\"}")
-// 	client := &http.Client{}
-// 	req, err := http.NewRequest(method, url, payload)
-// 	if err != nil {
-// 		// fmt.Println(err)
-// 		return "", err
-// 	}
-// 	req.Header.Add("Content-Type", "application/json")
-// 	res, err := client.Do(req)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	defer res.Body.Close()
-
-// 	jsonData := make(map[string]interface{})
-// 	json.NewDecoder(res.Body).Decode(&jsonData)
-// 	if jsonData["code"].(float64) != 0 {
-// 		err, _ := jsonData["msg"].(string)
-// 		return "", fmt.Errorf(err)
-// 	}
-// 	// fmt.Println("body: ", jsonData)
-
-// 	token, ok := jsonData["tenant_access_token"]
-// 	if !ok {
-// 		return "", fmt.Errorf("Get Bot access token faild")
-// 	}
-// 	return token.(string), nil
-// }
-
 func (s *SendParams) sendMessagToUser(authToken string) error {
 	url := "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=email"
 	method := "POST"
-
-	// if s.Message == "" {
-	// 	s.Message = "You receive an expedited message"
-	// }
 
 	httpContent := fmt.Sprintf(`{
 	"content": "{\"text\":\"%v\"}",
@@ -149,26 +123,5 @@ func (s *SendParams) sendMessagToUser(authToken string) error {
 		return fmt.Errorf(err)
 	}
 
-	// messageData, ok := jsonData["data"].(map[string]interface{})
-	// if !ok {
-	// 	return "", fmt.Errorf("Get the message_data faild while sending message with bot")
-	// }
-
-	// messageId, ok := messageData["message_id"].(string)
-	// if !ok {
-	// 	return "", fmt.Errorf("Get the message_id faild while sending message by bot")
-	// }
-
-	// chatId, ok := messageData["chat_id"].(string)
-	// if !ok {
-	// 	return "", fmt.Errorf("Get the chat_id faild while sending message by bot")
-	// }
-
 	return nil
 }
-
-// func RecordReceiverInfo(c *gin.Context, db *sql.DB, userId, receiver, chatId string) error {
-// 	sqlStr := "INSERT INTO receiver_info(receiverid, receiver, chatid) values (?, ?, ?);"
-// 	err := models.ReceiverInfo(db, sqlStr, userId, receiver, chatId)
-// 	return err
-// }

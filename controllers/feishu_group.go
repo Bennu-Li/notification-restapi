@@ -35,6 +35,13 @@ func FeishuGroup(c *gin.Context, db *sql.DB) {
 		return
 	}
 
+	userName, ok := c.Get("username")
+	if ok {
+		f.Message = f.Message + "----- from " + fmt.Sprintf("%v", userName)
+	} else {
+		fmt.Println("get userName error")
+	}
+
 	reader, err := f.generateRequestBody()
 	if err != nil {
 		fmt.Println(err)
@@ -45,7 +52,7 @@ func FeishuGroup(c *gin.Context, db *sql.DB) {
 	responce, err := Post(os.Getenv("NOTIFICATIONSERVER"), "application/json", reader)
 	// Record send message
 	status := fmt.Sprintf("%v", responce["Status"])
-	errRecord := RecordBehavior(c, db, f.Message, f.Receiver, status)
+	errRecord := RecordBehavior(c, db, "feishuGroup", f.Message, f.Receiver, status)
 	if errRecord != nil {
 		fmt.Println("record error: ", errRecord)
 	}

@@ -34,7 +34,6 @@ var (
 // @Produce     json
 // @Param       receiver       query    string true   "email address"
 // @Param       message        query    string false  "message content"
-// @Param       message_id     query    string false  "message id"
 // @Param       retry          query    int    false  "times of call, default 0"
 // @Param       interval       query    int    false  "repeat call interval, unit minutes, default 10 minutes"
 // @Success     200      {object} map[string]any
@@ -58,21 +57,25 @@ func Call(c *gin.Context, db *sql.DB) {
 	}
 	// fmt.Println(token)
 
-	// Send a Message to User by Bot to get a messageID
-	var chatId string
-	if call.MessageId == "" {
-		chatId, err = call.sendMessagToUser(token)
-		if err != nil {
-			ReturnErrorBody(c, 3, "faild to  send message to feishu receiver", err)
-			return
-		}
-	}
-
 	//根据邮箱获取 user_id
 	userId, err := GetUserIdByEmail(call.Receiver, token)
 	if err != nil {
 		ReturnErrorBody(c, 4, "faild to get user_id in feishu by receiver_email, check the parameter: receiver", err)
 		return
+	}
+
+	// Send a Message to User by Bot to get a messageID
+	if call.MessageId == "" {
+		userName, _ := c.Get("username")
+		chatId, err := call.sendMessagToUser(token, fmt.Sprintf("%v", userName))
+		if err != nil {
+			ReturnErrorBody(c, 3, "faild to  send message to feishu receiver", err)
+			return
+		}
+		err = RecordReceiverInfo(c, db, userId, call.Receiver, chatId)
+		if err != nil {
+			fmt.Println("Error: faild to record receiver info: ", err)
+		}
 	}
 
 	// 发送加急消息
@@ -89,14 +92,9 @@ func Call(c *gin.Context, db *sql.DB) {
 
 	fmt.Println("Successfully sent an expedited message by feishu bot")
 
-	err = RecordBehavior(c, db, "Message expedited", call.Receiver, "200")
+	err = RecordBehavior(c, db, "call", call.Message, call.Receiver, "200")
 	if err != nil {
 		fmt.Println("Error: faild to record user behavior to db: ", err)
-	}
-
-	err = RecordReceiverInfo(c, db, userId, call.Receiver, chatId)
-	if err != nil {
-		fmt.Println("Error: faild to record receiver info: ", err)
 	}
 
 	if call.Retry != 0 {
@@ -138,12 +136,13 @@ func GenTenantAccessToken(appId, appSecret string) (string, error) {
 	return token.(string), nil
 }
 
-func (call *CallParams) sendMessagToUser(authToken string) (string, error) {
+func (call *CallParams) sendMessagToUser(authToken string, userName string) (string, error) {
 	url := "https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=email"
 	method := "POST"
-
 	if call.Message == "" {
-		call.Message = "You receive an expedited message"
+		call.Message = userName + " send you an expedited message"
+	} else {
+		call.Message = call.Message + "   -- from " + userName
 	}
 
 	httpContent := fmt.Sprintf(`{

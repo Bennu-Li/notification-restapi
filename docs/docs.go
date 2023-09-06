@@ -16,6 +16,51 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/addUser": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Add permission for a user to apply auth token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Add permission",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the email address of the user",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the application which user used to",
+                        "name": "app",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/auth": {
             "post": {
                 "description": "Apply a authrization token",
@@ -98,12 +143,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "message content",
                         "name": "message",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "message id",
-                        "name": "message_id",
                         "in": "query"
                     },
                     {
@@ -218,7 +257,8 @@ const docTemplate = `{
                         "type": "string",
                         "description": "message content",
                         "name": "message",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -349,6 +389,65 @@ const docTemplate = `{
                         "description": "Time range for querying history messages, unit hours, default 10 hours ",
                         "name": "interval",
                         "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/pagerduty": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Use Pagerduty to call a person who",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Send"
+                ],
+                "summary": "Use Pagerduty to call",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the summary of the alert",
+                        "name": "summary",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the source of the alert",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the severity of the alert",
+                        "name": "severity",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the details of the alert",
+                        "name": "details",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {

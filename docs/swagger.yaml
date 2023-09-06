@@ -6,6 +6,35 @@ info:
   title: Notification API
   version: "1.0"
 paths:
+  /addUser:
+    post:
+      consumes:
+      - application/json
+      description: Add permission for a user to apply auth token
+      parameters:
+      - description: the email address of the user
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: the application which user used to
+        in: query
+        name: app
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Add permission
+      tags:
+      - Auth
   /auth:
     post:
       consumes:
@@ -55,10 +84,6 @@ paths:
       - description: message content
         in: query
         name: message
-        type: string
-      - description: message id
-        in: query
-        name: message_id
         type: string
       - description: times of call, default 0
         in: query
@@ -133,6 +158,7 @@ paths:
       - description: message content
         in: query
         name: message
+        required: true
         type: string
       produces:
       - application/json
@@ -231,6 +257,45 @@ paths:
       summary: Check if message has been read
       tags:
       - Check
+  /pagerduty:
+    post:
+      consumes:
+      - application/json
+      description: Use Pagerduty to call a person who
+      parameters:
+      - description: the summary of the alert
+        in: query
+        name: summary
+        required: true
+        type: string
+      - description: the source of the alert
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: the severity of the alert
+        in: query
+        name: severity
+        required: true
+        type: string
+      - description: the details of the alert
+        in: query
+        name: details
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - Bearer: []
+      summary: Use Pagerduty to call
+      tags:
+      - Send
   /refresh:
     post:
       consumes:

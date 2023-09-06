@@ -144,12 +144,12 @@ func GetTemplateNameByID(db *sql.DB, sqlStr string, arg1 int) (string, error) {
 }
 
 //Record user behavior
-func UserBehavior(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string, arg4 string, arg5 string) error {
+func UserBehavior(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string) error {
 	stmt, err := db.Prepare(sqlStr)
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(arg1, arg2, arg3, arg4, arg5)
+	_, err = stmt.Exec(arg1, arg2, arg3, arg4, arg5, arg6)
 	if err != nil {
 		return err
 	}
@@ -170,9 +170,9 @@ func ReceiverInfo(db *sql.DB, sqlStr string, arg1 string, arg2 string, arg3 stri
 }
 
 //Check user auth
-func CheckUserAuth(db *sql.DB, sqlStr string, arg1 string) (bool, error) {
+func CheckUserAuth(db *sql.DB, sqlStr string, arg1 string, arg2 string) (bool, error) {
 	var count int
-	err := db.QueryRow(sqlStr, arg1).Scan(&count)
+	err := db.QueryRow(sqlStr, arg1, arg2).Scan(&count)
 	if err != nil {
 		fmt.Printf("scan failed, err:%v\n", err)
 		return false, err

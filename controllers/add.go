@@ -79,6 +79,17 @@ type User struct {
 	App  string `json:"app" form:"app"`
 }
 
+// SendNotification godoc
+// @Summary     Add permission
+// @Description Add permission for a user to apply auth token
+// @Tags        Auth
+// @Accept      json
+// @Produce     json
+// @Param       name   query    string true  "the email address of the user"
+// @Param       app    query    string true  "the application which user used to"
+// @Success     200      {object} map[string]any
+// @Router      /addUser       [post]
+// @Security    Bearer
 func AddUser(c *gin.Context, db *sql.DB) {
 	u := &User{}
 	if c.Bind(u) != nil {

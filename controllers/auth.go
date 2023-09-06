@@ -56,7 +56,7 @@ func AuthHandler(c *gin.Context, db *sql.DB) {
 		return
 	}
 
-	ok, err := models.CheckUserAuth(db, "select count(*) from user_info where user = ?", u.User)
+	ok, err := models.CheckUserAuth(db, "select count(*) from user_info where user = ? and application = ?", u.User, u.AppName)
 	if err != nil {
 		ReturnErrorBody(c, 1, "Faild to check user authorization", err)
 		return

@@ -61,7 +61,7 @@ func SMS(c *gin.Context, db *sql.DB) {
 
 	responce, err := Post(os.Getenv("NOTIFICATIONSERVER"), "application/json", reader)
 	status := fmt.Sprintf("%v", responce["Status"])
-	errRecord := RecordBehavior(c, db, s.Message, s.Receiver, status)
+	errRecord := RecordBehavior(c, db, "sms", s.Message, s.Receiver, status)
 	if errRecord != nil {
 		fmt.Println("record error: ", errRecord)
 	}

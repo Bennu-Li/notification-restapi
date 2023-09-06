@@ -70,7 +70,6 @@ func main() {
 	// Add use to grant perssion to use the api. (params: name&app)
 	group2.POST("/addUser", func(c *gin.Context) {
 		controllers.AddUser(c, db)
-
 	})
 	group2.POST("/addTemp", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
 		controllers.AddTemplate(c, db)
@@ -82,6 +81,10 @@ func main() {
 
 	group.POST("/auth", func(c *gin.Context) {
 		controllers.AuthHandler(c, db)
+	})
+
+	group.POST("/addUser", func(c *gin.Context) {
+		controllers.AddUser(c, db)
 	})
 
 	group.POST("/refresh", controllers.JWTAuthMiddleware(), controllers.RefreshHandler)
@@ -104,6 +107,10 @@ func main() {
 
 	group.POST("/call", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
 		controllers.Call(c, db)
+	})
+
+	group.POST("/pagerduty", controllers.JWTAuthMiddleware(), func(c *gin.Context) {
+		controllers.Pagerduty(c, db)
 	})
 
 	group.POST("/messagestatus", controllers.JWTAuthMiddleware(), func(c *gin.Context) {

@@ -60,7 +60,7 @@ func Email(c *gin.Context, db *sql.DB) {
 
 	// Record send message
 	status := fmt.Sprintf("%v", responce["Status"])
-	errRecord := RecordBehavior(c, db, e.Message, e.Receiver, status)
+	errRecord := RecordBehavior(c, db, "email", e.Message, e.Receiver, status)
 	if errRecord != nil {
 		fmt.Println("record error: ", errRecord)
 	}
@@ -147,8 +147,8 @@ func Post(url string, contentType string, jsonFile io.Reader) (map[string]interf
 	return responce, nil
 }
 
-func RecordBehavior(c *gin.Context, db *sql.DB, message, receiver, status string) error {
-	sqlStr := "INSERT INTO sendMessages(user, application, message, receiver, status) values (?, ?, ?, ?, ?);"
+func RecordBehavior(c *gin.Context, db *sql.DB, mess_type, message, receiver, status string) error {
+	sqlStr := "INSERT INTO userBehavior(user, application, mess_type, message, receiver, status) values (?, ?, ?, ?, ?, ?);"
 	userName, ok := c.Get("username")
 	user := fmt.Sprintf("%v", userName)
 	if !ok {
@@ -159,6 +159,6 @@ func RecordBehavior(c *gin.Context, db *sql.DB, message, receiver, status string
 	if !ok {
 		return fmt.Errorf("The requested app name is not recognized")
 	}
-	err := models.UserBehavior(db, sqlStr, user, app, message, receiver, status)
+	err := models.UserBehavior(db, sqlStr, user, app, mess_type, message, receiver, status)
 	return err
 }
