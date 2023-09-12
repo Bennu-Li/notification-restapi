@@ -10,19 +10,13 @@ import (
 	"os"
 )
 
+// swagger:model PagerdutyParams
 type PagerdutyParams struct {
-	Summary  string `json:"summary" form:"summary" binding:"required"`
-	Source   string `json:"source" form:"source" binding:"required"`
-	Severity string `json:"severity" form:"severity" binding:"required"`
-	Details  string `json:"details" form:"details" binding:"required"`
+	Summary  string `json:"summary" xml:"summary" binding:"required"`
+	Source   string `json:"source" xml:"source" binding:"required"`
+	Severity string `json:"severity" xml:"severity" binding:"required"`
+	Details  string `json:"details" xml:"details" binding:"required"`
 }
-
-// type Type string
-
-// const (
-// 	TypeText Type = "text"
-// 	TypeHtml Type = "html"
-// )
 
 var (
 	pagerdutyAuth       = os.Getenv("PAGERDUTY_AUTH")
@@ -35,18 +29,15 @@ var (
 // @Tags        Send
 // @Accept      json
 // @Produce     json
-// @Param       summary   query    string true  "the summary of the alert"
-// @Param       source    query    string true  "the source of the alert"
-// @Param       severity  query    string true  "the severity of the alert"
-// @Param       details   query    string true "the details of the alert"
+// @Param       pagerduty	body  PagerdutyParams	true "Pagerduty Params"
 // @Success     200      {object} map[string]any
 // @Router      /pagerduty         [post]
 // @Security    Bearer
 func Pagerduty(c *gin.Context, db *sql.DB) {
 	p := &PagerdutyParams{}
-	err := c.ShouldBind(p)
+	err := c.BindJSON(p)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		ReturnErrorBody(c, 1, "Your request parameter invalid.", err)
 		return
 	}
@@ -57,7 +48,7 @@ func Pagerduty(c *gin.Context, db *sql.DB) {
 
 	users, err := client.ListUsers(opts)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	for _, user := range users.Users {
 		log.Printf("User: %s", user.Name)
@@ -82,7 +73,7 @@ func Pagerduty(c *gin.Context, db *sql.DB) {
 	status := "success"
 	_, err = client.ManageEvent(&alertOpts)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		ReturnErrorBody(c, 1, "faild to call by pagerduty.", err)
 		status = "faild"
 	} else {
@@ -94,7 +85,7 @@ func Pagerduty(c *gin.Context, db *sql.DB) {
 
 	errRecord := RecordBehavior(c, db, "pagerduty", p.Summary, "pagerduty", status)
 	if errRecord != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	return

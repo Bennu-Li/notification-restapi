@@ -422,32 +422,13 @@ const docTemplate = `{
                 "summary": "Use Pagerduty to call",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "the summary of the alert",
-                        "name": "summary",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "the source of the alert",
-                        "name": "source",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "the severity of the alert",
-                        "name": "severity",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "the details of the alert",
-                        "name": "details",
-                        "in": "query",
-                        "required": true
+                        "description": "Pagerduty Params",
+                        "name": "pagerduty",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.PagerdutyParams"
+                        }
                     }
                 ],
                 "responses": {
@@ -557,6 +538,31 @@ const docTemplate = `{
                             "additionalProperties": true
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "controllers.PagerdutyParams": {
+            "type": "object",
+            "required": [
+                "details",
+                "severity",
+                "source",
+                "summary"
+            ],
+            "properties": {
+                "details": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
                 }
             }
         }

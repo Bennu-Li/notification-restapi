@@ -1,4 +1,21 @@
 basePath: /api/v1
+definitions:
+  controllers.PagerdutyParams:
+    properties:
+      details:
+        type: string
+      severity:
+        type: string
+      source:
+        type: string
+      summary:
+        type: string
+    required:
+    - details
+    - severity
+    - source
+    - summary
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -263,26 +280,12 @@ paths:
       - application/json
       description: Use Pagerduty to call a person who
       parameters:
-      - description: the summary of the alert
-        in: query
-        name: summary
+      - description: Pagerduty Params
+        in: body
+        name: pagerduty
         required: true
-        type: string
-      - description: the source of the alert
-        in: query
-        name: source
-        required: true
-        type: string
-      - description: the severity of the alert
-        in: query
-        name: severity
-        required: true
-        type: string
-      - description: the details of the alert
-        in: query
-        name: details
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/controllers.PagerdutyParams'
       produces:
       - application/json
       responses:
